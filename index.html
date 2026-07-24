@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BodyMassTracker Cloud</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #64748b;
+      --border: #dbe3ef;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --good: #15803d;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --purple: #7c3aed;
+      --teal: #0f766e;
+      --target: #d97706;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, #e7efff 0, transparent 34rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.55rem, 3vw, 2rem);
+    }
+
+    .brand p {
+      margin: 7px 0 0;
+      color: var(--muted);
+    }
+
+    .goal-badge {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border: 1px solid #c8d8fb;
+      border-radius: 999px;
+      background: #edf4ff;
+      color: #1e3a8a;
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .card {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 12px 32px rgba(41, 61, 92, .07);
+    }
+
+    .dashboard-grid > .card {
+      height: 100%;
+    }
+
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 1.15rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: #334155;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-width: 0;
+      padding: 11px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 11px;
+      background: white;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .button {
+      min-height: 42px;
+      padding: 10px 15px;
+      border: 0;
+      border-radius: 11px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .button.primary {
+      color: white;
+      background: var(--accent);
+    }
+
+    .button.primary:hover { background: var(--accent-dark); }
+
+    .button.secondary {
+      color: #334155;
+      background: #e9eef6;
+    }
+
+    .button.danger {
+      color: #991b1b;
+      background: #fee2e2;
+    }
+
+    .helper {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: .85rem;
+      line-height: 1.5;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #f8fafc;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .metric-value {
+      margin-top: 7px;
+      font-size: clamp(1.25rem, 3vw, 1.7rem);
+      font-weight: 850;
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 18px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #eef2f7;
+      font-weight: 800;
+    }
+
+    .status.good { color: var(--good); background: #dcfce7; }
+    .status.warn { color: var(--warn); background: #fef3c7; }
+    .status.bad { color: var(--bad); background: #fee2e2; }
+
+    .charts {
+      display: grid;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .chart-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 12px 32px rgba(41, 61, 92, .05);
+    }
+
+    .chart-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chart-heading h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .chart-heading p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px 14px;
+      color: #475569;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-line {
+      width: 20px;
+      height: 3px;
+      border-radius: 99px;
+      background: currentColor;
+    }
+
+    .legend-line.dashed {
+      height: 0;
+      border-top: 2px dashed currentColor;
+      background: none;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 270px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .history-card {
+      margin-top: 18px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #e5eaf2;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #475569;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    td { font-size: .9rem; }
+
+    .delete-row {
+      padding: 6px 9px;
+      border: 0;
+      border-radius: 8px;
+      color: #991b1b;
+      background: #fee2e2;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    .empty {
+      padding: 32px 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .message {
+      min-height: 22px;
+      margin-top: 12px;
+      color: var(--good);
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 760px) {
+      .topbar { flex-direction: column; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .chart-heading { flex-direction: column; }
+      .legend { justify-content: flex-start; }
+      .canvas-wrap { height: 240px; }
+    }
+
+    @media (max-width: 430px) {
+      .app { width: min(100% - 20px, 1120px); padding-top: 18px; }
+      .card, .chart-card { padding: 16px; border-radius: 15px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .actions .button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>BodyMassTracker</h1>
+        <p>Daily calorie, deficit and weight tracking.</p>
+      </div>
+      <div class="goal-badge">Goal: 103 kg → 97 kg</div>
+    </header>
+
+
+    <section id="cloudSetupNotice" class="card" style="margin-bottom:18px; border-color:#fed7aa; background:#fff7ed;">
+      <h2 style="margin-bottom:8px;">Cloud connection setup</h2>
+      <p class="helper" style="margin-top:0;">
+        Enter your Supabase project URL and anonymous key near the top of this HTML file.
+        Once configured, all entries sync across phone and PC. No browser storage is used.
+      </p>
+    </section>
+
+    <section class="dashboard-grid" aria-label="Daily dashboard">
+      <article class="card">
+        <h2>Daily Check-In</h2>
+
+        <div class="form-grid">
+          <div class="field full">
+            <label for="entryDate">Date</label>
+            <input id="entryDate" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="intake">Calorie intake (kcal)</label>
+            <input id="intake" type="number" min="0" step="1" placeholder="e.g. 2100" />
+          </div>
+
+          <div class="field">
+            <label for="burn">Garmin burn (kcal)</label>
+            <input id="burn" type="number" min="0" step="1" placeholder="e.g. 3050" />
+          </div>
+
+          <div class="field full">
+            <label for="weight">Body weight (kg)</label>
+            <input id="weight" type="number" min="20" max="400" step="0.1" placeholder="e.g. 102.4" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="saveButton" class="button primary" type="button">Complete Check-In</button>
+          <button id="clearFormButton" class="button secondary" type="button">Clear Form</button>
+        </div>
+
+        <p class="helper">
+          Saving the same date again updates that day's entry in the cloud.
+        </p>
+        <div id="message" class="message" aria-live="polite"></div>
+      </article>
+
+      <article class="card">
+        <h2>Today's Results</h2>
+
+        <div class="summary-grid">
+          <div class="metric">
+            <div class="metric-label">Calorie intake</div>
+            <div id="summaryIntake" class="metric-value">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Garmin burn</div>
+            <div id="summaryBurn" class="metric-value">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Net deficit</div>
+            <div id="summaryDeficit" class="metric-value">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Body weight</div>
+            <div id="summaryWeight" class="metric-value">—</div>
+          </div>
+        </div>
+
+        <div id="status" class="status">No check-in saved for today</div>
+        <p class="helper">Daily deficit target: 850 kcal.</p>
+      </article>
+    </section>
+
+    <section class="charts" aria-label="Historical charts">
+      <article class="chart-card">
+        <div class="chart-heading">
+          <div>
+            <h2>Deficit history</h2>
+            <p>Daily net calorie deficit over time.</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item" style="color: var(--purple)">
+              <span class="legend-line"></span> Deficit
+            </span>
+            <span class="legend-item" style="color: var(--target)">
+              <span class="legend-line dashed"></span> 850 kcal target
+            </span>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="deficitChart" aria-label="Deficit history line graph"></canvas>
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <div class="chart-heading">
+          <div>
+            <h2>Calorie history</h2>
+            <p>Intake and Garmin burn on the same calorie axis.</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item" style="color: var(--accent)">
+              <span class="legend-line"></span> Intake
+            </span>
+            <span class="legend-item" style="color: var(--good)">
+              <span class="legend-line"></span> Garmin burn
+            </span>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="calorieChart" aria-label="Intake and Garmin burn history line graph"></canvas>
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <div class="chart-heading">
+          <div>
+            <h2>Body weight history</h2>
+            <p>Body weight in kilograms over time.</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item" style="color: var(--teal)">
+              <span class="legend-line"></span> Weight
+            </span>
+            <span class="legend-item" style="color: var(--target)">
+              <span class="legend-line dashed"></span> 97 kg goal
+            </span>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="weightChart" aria-label="Body weight history line graph"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section class="card history-card">
+      <div class="chart-heading">
+        <div>
+          <h2>Check-In History</h2>
+          <p>All saved values, ordered from newest to oldest.</p>
+        </div>
+        <button id="deleteAllButton" class="button danger" type="button">Delete All Data</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Intake</th>
+              <th>Burn</th>
+              <th>Deficit</th>
+              <th>Weight</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+        <div id="emptyHistory" class="empty">No check-ins yet.</div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+
+    (() => {
+      "use strict";
+
+      /*
+        ONE-TIME SETUP:
+        1. Create a Supabase project.
+        2. Run the SQL shown in the setup file provided with this HTML.
+        3. Replace the two values below.
+      */
+      const SUPABASE_URL = "https://ozekbxclcfnpgpqipuhi.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96ZWtieGNsY2ZucGdwcWlwdWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NDM1OTIsImV4cCI6MjEwMDQxOTU5Mn0.X8vLnJ9o1Cef5NEHqacF1EBc7RorV_1wMGxNnnJs0Q4";
+
+      const DEFICIT_TARGET = 850;
+      const WEIGHT_GOAL = 97;
+      const configured =
+        !SUPABASE_URL.startsWith("YOUR_") &&
+        !SUPABASE_ANON_KEY.startsWith("YOUR_");
+
+      const supabase = configured
+        ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
+
+      const setupNotice = document.getElementById("cloudSetupNotice");
+      setupNotice.hidden = configured;
+
+      const dateInput = document.getElementById("entryDate");
+      const intakeInput = document.getElementById("intake");
+      const burnInput = document.getElementById("burn");
+      const weightInput = document.getElementById("weight");
+      const message = document.getElementById("message");
+
+      const todayISO = new Date().toLocaleDateString("en-CA");
+      dateInput.value = todayISO;
+
+      let entries = [];
+
+      function formatDate(isoDate) {
+        const date = new Date(`${isoDate}T12:00:00`);
+        return new Intl.DateTimeFormat(undefined, {
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        }).format(date);
+      }
+
+      function shortDate(isoDate) {
+        const date = new Date(`${isoDate}T12:00:00`);
+        return new Intl.DateTimeFormat(undefined, {
+          day: "2-digit",
+          month: "short"
+        }).format(date);
+      }
+
+      function formatNumber(value, digits = 0) {
+        return Number(value).toLocaleString(undefined, {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        });
+      }
+
+      function setMessage(text, isError = false) {
+        message.textContent = text;
+        message.style.color = isError ? "var(--bad)" : "var(--good)";
+        window.clearTimeout(setMessage.timeout);
+        setMessage.timeout = window.setTimeout(() => {
+          message.textContent = "";
+        }, 4000);
+      }
+
+      function clearForm(keepDate = true) {
+        intakeInput.value = "";
+        burnInput.value = "";
+        weightInput.value = "";
+        if (!keepDate) dateInput.value = todayISO;
+      }
+
+      async function ensureJuly23Entry() {
+        if (!supabase) return;
+
+        const july23 = {
+          entry_date: "2026-07-23",
+          intake: 2000,
+          burn: 3800,
+          deficit: 1800,
+          weight: null
+        };
+
+        const { error } = await supabase
+          .from("checkins")
+          .upsert(july23, { onConflict: "entry_date", ignoreDuplicates: true });
+
+        if (error) {
+          console.error("Could not add July 23 entry:", error.message);
+        }
+      }
+
+      async function loadEntries() {
+        if (!supabase) {
+          entries = [{
+            id: "preview-july-23",
+            date: "2026-07-23",
+            intake: 2000,
+            burn: 3800,
+            deficit: 1800,
+            weight: null,
+            preview: true
+          }];
+          renderAll();
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("checkins")
+          .select("*")
+          .order("entry_date", { ascending: true });
+
+        if (error) {
+          setMessage(`Cloud load failed: ${error.message}`, true);
+          return;
+        }
+
+        entries = (data || []).map(row => ({
+          id: row.id,
+          date: row.entry_date,
+          intake: Number(row.intake),
+          burn: Number(row.burn),
+          deficit: Number(row.deficit),
+          weight: row.weight === null ? null : Number(row.weight)
+        }));
+
+        renderAll();
+      }
+
+      async function saveCheckIn() {
+        if (!supabase) {
+          setMessage("Add your Supabase URL and key to enable cloud saving.", true);
+          return;
+        }
+
+        const date = dateInput.value;
+        const intake = Number(intakeInput.value);
+        const burn = Number(burnInput.value);
+        const weight = weightInput.value === "" ? null : Number(weightInput.value);
+
+        if (!date) {
+          setMessage("Please select a date.", true);
+          return;
+        }
+
+        if (!Number.isFinite(intake) || intake < 0 ||
+            !Number.isFinite(burn) || burn < 0) {
+          setMessage("Enter valid intake and burn values.", true);
+          return;
+        }
+
+        if (weight !== null && (!Number.isFinite(weight) || weight <= 0)) {
+          setMessage("Enter a valid body weight or leave it empty.", true);
+          return;
+        }
+
+        const payload = {
+          entry_date: date,
+          intake: Math.round(intake),
+          burn: Math.round(burn),
+          deficit: Math.round(burn - intake),
+          weight: weight === null ? null : Math.round(weight * 10) / 10,
+          updated_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase
+          .from("checkins")
+          .upsert(payload, { onConflict: "entry_date" });
+
+        if (error) {
+          setMessage(`Cloud save failed: ${error.message}`, true);
+          return;
+        }
+
+        setMessage("Check-in saved to cloud.");
+        await loadEntries();
+      }
+
+      async function deleteEntry(id) {
+        if (!supabase || String(id).startsWith("preview")) return;
+
+        const { error } = await supabase
+          .from("checkins")
+          .delete()
+          .eq("id", id);
+
+        if (error) {
+          setMessage(`Delete failed: ${error.message}`, true);
+          return;
+        }
+
+        setMessage("Entry deleted.");
+        await loadEntries();
+      }
+
+      async function deleteAll() {
+        if (!supabase) {
+          setMessage("Cloud connection is not configured.", true);
+          return;
+        }
+
+        if (!entries.length) return;
+
+        const confirmed = window.confirm(
+          "Delete all saved BodyMassTracker cloud data?"
+        );
+        if (!confirmed) return;
+
+        const { error } = await supabase
+          .from("checkins")
+          .delete()
+          .gte("entry_date", "1900-01-01");
+
+        if (error) {
+          setMessage(`Delete failed: ${error.message}`, true);
+          return;
+        }
+
+        setMessage("All cloud data deleted.");
+        await loadEntries();
+      }
+
+      function updateSummary() {
+        const todayEntry = entries.find(item => item.date === todayISO);
+
+        if (!todayEntry) {
+          document.getElementById("summaryIntake").textContent = "—";
+          document.getElementById("summaryBurn").textContent = "—";
+          document.getElementById("summaryDeficit").textContent = "—";
+          document.getElementById("summaryWeight").textContent = "—";
+
+          const status = document.getElementById("status");
+          status.textContent = "No check-in saved for today";
+          status.className = "status";
+          return;
+        }
+
+        document.getElementById("summaryIntake").textContent =
+          `${formatNumber(todayEntry.intake)} kcal`;
+        document.getElementById("summaryBurn").textContent =
+          `${formatNumber(todayEntry.burn)} kcal`;
+        document.getElementById("summaryDeficit").textContent =
+          `${formatNumber(todayEntry.deficit)} kcal`;
+        document.getElementById("summaryWeight").textContent =
+          todayEntry.weight === null ? "—" : `${formatNumber(todayEntry.weight, 1)} kg`;
+
+        const status = document.getElementById("status");
+        if (todayEntry.deficit >= DEFICIT_TARGET) {
+          status.textContent = "On target";
+          status.className = "status good";
+        } else if (todayEntry.deficit > 0) {
+          status.textContent = "Below target";
+          status.className = "status warn";
+        } else {
+          status.textContent = "Calorie surplus";
+          status.className = "status bad";
+        }
+      }
+
+      function updateHistory() {
+        const tbody = document.getElementById("historyBody");
+        const empty = document.getElementById("emptyHistory");
+        tbody.innerHTML = "";
+
+        if (!entries.length) {
+          empty.hidden = false;
+          return;
+        }
+
+        empty.hidden = true;
+
+        [...entries].reverse().forEach(entry => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDate(entry.date)}</td>
+            <td>${formatNumber(entry.intake)} kcal</td>
+            <td>${formatNumber(entry.burn)} kcal</td>
+            <td>${formatNumber(entry.deficit)} kcal</td>
+            <td>${entry.weight === null ? "—" : `${formatNumber(entry.weight, 1)} kg`}</td>
+            <td>${
+              entry.preview
+                ? "Preview"
+                : `<button class="delete-row" type="button" data-id="${entry.id}">Delete</button>`
+            }</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        tbody.querySelectorAll(".delete-row").forEach(button => {
+          button.addEventListener("click", () => deleteEntry(button.dataset.id));
+        });
+      }
+
+      function prepareCanvas(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.max(1, Math.round(rect.width * ratio));
+        canvas.height = Math.max(1, Math.round(rect.height * ratio));
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        return { ctx, width: rect.width, height: rect.height };
+      }
+
+      function drawEmpty(ctx, width, height, label) {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = "#64748b";
+        ctx.font = "14px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(label, width / 2, height / 2);
+      }
+
+      function createChartBase(canvas, data, options) {
+        const { ctx, width, height } = prepareCanvas(canvas);
+        ctx.clearRect(0, 0, width, height);
+
+        if (!data.length) {
+          drawEmpty(ctx, width, height, "No historical data yet");
+          return null;
+        }
+
+        const margin = { left: 58, right: 18, top: 18, bottom: 42 };
+        const plotWidth = Math.max(1, width - margin.left - margin.right);
+        const plotHeight = Math.max(1, height - margin.top - margin.bottom);
+        const min = options.min;
+        const max = options.max;
+        const range = Math.max(0.0001, max - min);
+
+        const xFor = index =>
+          data.length === 1
+            ? margin.left + plotWidth / 2
+            : margin.left + (index / (data.length - 1)) * plotWidth;
+
+        const yFor = value =>
+          margin.top + plotHeight - ((value - min) / range) * plotHeight;
+
+        ctx.strokeStyle = "#dbe3ef";
+        ctx.fillStyle = "#64748b";
+        ctx.lineWidth = 1;
+        ctx.font = "12px system-ui, sans-serif";
+
+        for (let i = 0; i <= 4; i++) {
+          const value = min + (range / 4) * i;
+          const y = yFor(value);
+          ctx.beginPath();
+          ctx.moveTo(margin.left, y);
+          ctx.lineTo(width - margin.right, y);
+          ctx.stroke();
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText(options.yFormatter(value), margin.left - 8, y);
+        }
+
+        const maxLabels = width < 500 ? 4 : 7;
+        const step = Math.max(1, Math.ceil(data.length / maxLabels));
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+
+        data.forEach((item, index) => {
+          if (index % step === 0 || index === data.length - 1) {
+            ctx.fillText(shortDate(item.date), xFor(index), height - margin.bottom + 12);
+          }
+        });
+
+        ctx.save();
+        ctx.translate(14, margin.top + plotHeight / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(options.yLabel, 0, 0);
+        ctx.restore();
+
+        return { ctx, width, margin, xFor, yFor };
+      }
+
+      function drawLine(base, data, valueAccessor, color) {
+        const values = data.map(valueAccessor);
+        const valid = values
+          .map((value, index) => Number.isFinite(value) ? index : -1)
+          .filter(index => index >= 0);
+
+        if (!valid.length) return;
+
+        const { ctx, xFor, yFor } = base;
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 3;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+
+        ctx.beginPath();
+        valid.forEach((index, pointIndex) => {
+          const x = xFor(index);
+          const y = yFor(values[index]);
+          if (pointIndex === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        valid.forEach(index => {
+          ctx.beginPath();
+          ctx.arc(xFor(index), yFor(values[index]), 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      function drawTargetLine(base, value, label, color) {
+        const { ctx, margin, width, yFor } = base;
+        const y = yFor(value);
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 6]);
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(width - margin.right, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = color;
+        ctx.font = "bold 11px system-ui, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(label, margin.left + 6, y - 5);
+      }
+
+      function drawDeficitChart() {
+        const canvas = document.getElementById("deficitChart");
+        if (!entries.length) {
+          const { ctx, width, height } = prepareCanvas(canvas);
+          drawEmpty(ctx, width, height, "No deficit history yet");
+          return;
+        }
+
+        const values = entries.map(item => item.deficit);
+        const min = Math.min(0, ...values);
+        const maxRaw = Math.max(DEFICIT_TARGET, ...values);
+        const max = maxRaw + Math.max(150, (maxRaw - min) * 0.12);
+
+        const base = createChartBase(canvas, entries, {
+          min,
+          max,
+          yLabel: "Deficit (kcal)",
+          yFormatter: value => Math.round(value).toLocaleString()
+        });
+
+        if (!base) return;
+        drawTargetLine(base, DEFICIT_TARGET, "850 kcal target", "#d97706");
+        drawLine(base, entries, item => item.deficit, "#7c3aed");
+      }
+
+      function drawCalorieChart() {
+        const canvas = document.getElementById("calorieChart");
+        if (!entries.length) {
+          const { ctx, width, height } = prepareCanvas(canvas);
+          drawEmpty(ctx, width, height, "No calorie history yet");
+          return;
+        }
+
+        const values = entries.flatMap(item => [item.intake, item.burn]);
+        const maxRaw = Math.max(...values, 1000);
+        const max = maxRaw + Math.max(200, maxRaw * 0.08);
+
+        const base = createChartBase(canvas, entries, {
+          min: 0,
+          max,
+          yLabel: "Calories (kcal)",
+          yFormatter: value => Math.round(value).toLocaleString()
+        });
+
+        if (!base) return;
+        drawLine(base, entries, item => item.intake, "#2563eb");
+        drawLine(base, entries, item => item.burn, "#15803d");
+      }
+
+      function drawWeightChart() {
+        const weightedEntries = entries.filter(item => Number.isFinite(item.weight));
+        const canvas = document.getElementById("weightChart");
+
+        if (!weightedEntries.length) {
+          const { ctx, width, height } = prepareCanvas(canvas);
+          drawEmpty(ctx, width, height, "No weight history yet");
+          return;
+        }
+
+        const values = weightedEntries.map(item => item.weight);
+        const minRaw = Math.min(WEIGHT_GOAL, ...values);
+        const maxRaw = Math.max(WEIGHT_GOAL, ...values);
+        const spread = Math.max(2, maxRaw - minRaw);
+        const min = Math.floor((minRaw - Math.max(0.8, spread * 0.15)) * 2) / 2;
+        const max = Math.ceil((maxRaw + Math.max(0.8, spread * 0.15)) * 2) / 2;
+
+        const base = createChartBase(canvas, weightedEntries, {
+          min,
+          max,
+          yLabel: "Body weight (kg)",
+          yFormatter: value => value.toFixed(1)
+        });
+
+        if (!base) return;
+        drawTargetLine(base, WEIGHT_GOAL, "97 kg goal", "#d97706");
+        drawLine(base, weightedEntries, item => item.weight, "#0f766e");
+      }
+
+      function renderAll() {
+        updateSummary();
+        updateHistory();
+        drawDeficitChart();
+        drawCalorieChart();
+        drawWeightChart();
+      }
+
+      document.getElementById("saveButton").addEventListener("click", saveCheckIn);
+      document.getElementById("clearFormButton").addEventListener("click", () => clearForm(true));
+      document.getElementById("deleteAllButton").addEventListener("click", deleteAll);
+
+      [intakeInput, burnInput, weightInput].forEach(input => {
+        input.addEventListener("keydown", event => {
+          if (event.key === "Enter") saveCheckIn();
+        });
+      });
+
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(() => {
+          drawDeficitChart();
+          drawCalorieChart();
+          drawWeightChart();
+        }, 120);
+      });
+
+      async function initialize() {
+        if (configured) {
+          await ensureJuly23Entry();
+        }
+        await loadEntries();
+      }
+
+      initialize();
+    })();
+  </script>
+</body>
+</html>
