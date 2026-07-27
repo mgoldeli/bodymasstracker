@@ -698,6 +698,21 @@
           return;
         }
 
+        const existingEntry = entries.find(entry => entry.date === date);
+        if (existingEntry) {
+          const confirmed = window.confirm(
+            `A check-in already exists for ${formatDate(date)}.\n\n` +
+            `Existing: ${formatNumber(existingEntry.intake)} kcal intake, ` +
+            `${formatNumber(existingEntry.burn)} kcal burned, ` +
+            `${existingEntry.weight === null ? "no weight" : `${formatNumber(existingEntry.weight, 1)} kg`}\n\n` +
+            "Are you sure you want to overwrite this existing data?"
+          );
+          if (!confirmed) {
+            setMessage("Overwrite cancelled.");
+            return;
+          }
+        }
+
         const payload = {
           entry_date: date,
           intake: Math.round(intake),
@@ -746,7 +761,8 @@
         if (!entries.length) return;
 
         const confirmed = window.confirm(
-          "Delete all saved BodyMassTracker cloud data?"
+          `Are you sure you want to permanently delete all ${entries.length} ` +
+          "BodyMassTracker check-in(s)?\n\nThis action cannot be undone."
         );
         if (!confirmed) return;
 
