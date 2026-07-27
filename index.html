@@ -357,6 +357,92 @@
       .summary-grid { grid-template-columns: 1fr; }
       .actions .button { width: 100%; }
     }
+
+    dialog.confirm-dialog {
+      width: min(520px, calc(100% - 32px));
+      padding: 0;
+      border: 0;
+      border-radius: 18px;
+      background: white;
+      color: var(--text);
+      box-shadow: 0 24px 80px rgba(15, 23, 42, .28);
+    }
+
+    dialog.confirm-dialog::backdrop {
+      background: rgba(15, 23, 42, .58);
+      backdrop-filter: blur(2px);
+    }
+
+    .dialog-content {
+      padding: 24px;
+    }
+
+    .dialog-icon {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      margin-bottom: 14px;
+      border-radius: 50%;
+      background: #fee2e2;
+      color: #991b1b;
+      font-size: 1.35rem;
+      font-weight: 900;
+    }
+
+    .dialog-icon.warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .dialog-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .dialog-message {
+      margin: 10px 0 0;
+      color: #475569;
+      line-height: 1.55;
+      white-space: pre-line;
+    }
+
+    .dialog-details {
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #334155;
+      line-height: 1.55;
+      white-space: pre-line;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .dialog-actions .button {
+      min-width: 110px;
+    }
+
+    @media (max-width: 520px) {
+      .dialog-content {
+        padding: 20px;
+      }
+
+      .dialog-actions {
+        flex-direction: column-reverse;
+      }
+
+      .dialog-actions .button {
+        width: 100%;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -535,6 +621,20 @@
     </section>
   </main>
 
+
+  <dialog id="confirmDialog" class="confirm-dialog" aria-labelledby="confirmDialogTitle">
+    <div class="dialog-content">
+      <div id="confirmDialogIcon" class="dialog-icon" aria-hidden="true">!</div>
+      <h2 id="confirmDialogTitle" class="dialog-title">Please confirm</h2>
+      <p id="confirmDialogMessage" class="dialog-message"></p>
+      <div id="confirmDialogDetails" class="dialog-details" hidden></div>
+      <div class="dialog-actions">
+        <button id="confirmDialogCancel" class="button secondary" type="button">Cancel</button>
+        <button id="confirmDialogConfirm" class="button danger" type="button">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
 
@@ -568,6 +668,14 @@
       const burnInput = document.getElementById("burn");
       const weightInput = document.getElementById("weight");
       const message = document.getElementById("message");
+
+      const confirmDialog = document.getElementById("confirmDialog");
+      const confirmDialogIcon = document.getElementById("confirmDialogIcon");
+      const confirmDialogTitle = document.getElementById("confirmDialogTitle");
+      const confirmDialogMessage = document.getElementById("confirmDialogMessage");
+      const confirmDialogDetails = document.getElementById("confirmDialogDetails");
+      const confirmDialogCancel = document.getElementById("confirmDialogCancel");
+      const confirmDialogConfirm = document.getElementById("confirmDialogConfirm");
 
       const todayISO = new Date().toLocaleDateString("en-CA");
       dateInput.value = todayISO;
@@ -605,6 +713,65 @@
         setMessage.timeout = window.setTimeout(() => {
           message.textContent = "";
         }, 4000);
+      }
+
+
+      function showConfirmDialog({
+        title,
+        message,
+        details = "",
+        confirmText = "Confirm",
+        danger = true
+      }) {
+        return new Promise(resolve => {
+          // Fallback for very old browsers.
+          if (!confirmDialog || typeof confirmDialog.showModal !== "function") {
+            const fallbackText = [title, message, details].filter(Boolean).join("\n\n");
+            resolve(window.confirm(fallbackText));
+            return;
+          }
+
+          confirmDialogTitle.textContent = title;
+          confirmDialogMessage.textContent = message;
+          confirmDialogConfirm.textContent = confirmText;
+          confirmDialogDetails.textContent = details;
+          confirmDialogDetails.hidden = !details;
+
+          confirmDialogIcon.classList.toggle("warning", !danger);
+          confirmDialogConfirm.classList.toggle("danger", danger);
+          confirmDialogConfirm.classList.toggle("primary", !danger);
+
+          let settled = false;
+
+          const finish = result => {
+            if (settled) return;
+            settled = true;
+            confirmDialogCancel.removeEventListener("click", onCancel);
+            confirmDialogConfirm.removeEventListener("click", onConfirm);
+            confirmDialog.removeEventListener("cancel", onNativeCancel);
+            confirmDialog.removeEventListener("click", onBackdropClick);
+            if (confirmDialog.open) confirmDialog.close();
+            resolve(result);
+          };
+
+          const onCancel = () => finish(false);
+          const onConfirm = () => finish(true);
+          const onNativeCancel = event => {
+            event.preventDefault();
+            finish(false);
+          };
+          const onBackdropClick = event => {
+            if (event.target === confirmDialog) finish(false);
+          };
+
+          confirmDialogCancel.addEventListener("click", onCancel);
+          confirmDialogConfirm.addEventListener("click", onConfirm);
+          confirmDialog.addEventListener("cancel", onNativeCancel);
+          confirmDialog.addEventListener("click", onBackdropClick);
+
+          confirmDialog.showModal();
+          confirmDialogCancel.focus();
+        });
       }
 
       function clearForm(keepDate = true) {
@@ -700,13 +867,27 @@
 
         const existingEntry = entries.find(entry => entry.date === date);
         if (existingEntry) {
-          const confirmed = window.confirm(
-            `A check-in already exists for ${formatDate(date)}.\n\n` +
-            `Existing: ${formatNumber(existingEntry.intake)} kcal intake, ` +
-            `${formatNumber(existingEntry.burn)} kcal burned, ` +
-            `${existingEntry.weight === null ? "no weight" : `${formatNumber(existingEntry.weight, 1)} kg`}\n\n` +
-            "Are you sure you want to overwrite this existing data?"
-          );
+          const newDeficit = Math.round(burn - intake);
+          const confirmed = await showConfirmDialog({
+            title: "Overwrite existing check-in?",
+            message:
+              `A check-in already exists for ${formatDate(date)}. ` +
+              "Saving will permanently replace the old values with the new values.",
+            details:
+              `OLD DATA\n` +
+              `Intake: ${formatNumber(existingEntry.intake)} kcal\n` +
+              `Garmin burn: ${formatNumber(existingEntry.burn)} kcal\n` +
+              `Deficit: ${formatNumber(existingEntry.deficit)} kcal\n` +
+              `Weight: ${existingEntry.weight === null ? "Not entered" : `${formatNumber(existingEntry.weight, 1)} kg`}\n\n` +
+              `NEW DATA\n` +
+              `Intake: ${formatNumber(Math.round(intake))} kcal\n` +
+              `Garmin burn: ${formatNumber(Math.round(burn))} kcal\n` +
+              `Deficit: ${formatNumber(newDeficit)} kcal\n` +
+              `Weight: ${weight === null ? "Not entered" : `${formatNumber(Math.round(weight * 10) / 10, 1)} kg`}`,
+            confirmText: "Overwrite data",
+            danger: false
+          });
+
           if (!confirmed) {
             setMessage("Overwrite cancelled.");
             return;
@@ -738,6 +919,31 @@
       async function deleteEntry(id) {
         if (!supabase || String(id).startsWith("preview")) return;
 
+        const entry = entries.find(item => String(item.id) === String(id));
+        if (!entry) {
+          setMessage("The selected entry could not be found.", true);
+          return;
+        }
+
+        const confirmed = await showConfirmDialog({
+          title: "Delete this check-in?",
+          message:
+            `Are you sure you want to permanently delete the check-in for ${formatDate(entry.date)}? ` +
+            "This action cannot be undone.",
+          details:
+            `Intake: ${formatNumber(entry.intake)} kcal\n` +
+            `Garmin burn: ${formatNumber(entry.burn)} kcal\n` +
+            `Deficit: ${formatNumber(entry.deficit)} kcal\n` +
+            `Weight: ${entry.weight === null ? "Not entered" : `${formatNumber(entry.weight, 1)} kg`}`,
+          confirmText: "Delete check-in",
+          danger: true
+        });
+
+        if (!confirmed) {
+          setMessage("Delete cancelled.");
+          return;
+        }
+
         const { error } = await supabase
           .from("checkins")
           .delete()
@@ -760,11 +966,21 @@
 
         if (!entries.length) return;
 
-        const confirmed = window.confirm(
-          `Are you sure you want to permanently delete all ${entries.length} ` +
-          "BodyMassTracker check-in(s)?\n\nThis action cannot be undone."
-        );
-        if (!confirmed) return;
+        const confirmed = await showConfirmDialog({
+          title: "Delete all BodyMassTracker data?",
+          message:
+            `You are about to permanently delete all ${entries.length} saved check-in(s) from the cloud database.`,
+          details:
+            "Every date, calorie entry, Garmin burn value, deficit and recorded weight will be removed.\n\n" +
+            "This action cannot be undone.",
+          confirmText: "Delete all data",
+          danger: true
+        });
+
+        if (!confirmed) {
+          setMessage("Delete all cancelled.");
+          return;
+        }
 
         const { error } = await supabase
           .from("checkins")
