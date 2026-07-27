@@ -3,192 +3,1317 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SharedLists</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
+  <title>BodyMassTracker Cloud</title>
   <style>
-    :root{--blue:#173f6d;--blue-dark:#0f2e52;--blue-soft:#e8f0f8;--paper:#fffefb;--sidebar:#f3f5f7;--line:#e2e6ea;--text:#242424;--muted:#68727d;--danger:#b42318;--shadow:0 10px 30px rgba(15,46,82,.16)}
-    *{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:"Segoe UI",Inter,Arial,sans-serif;color:var(--text);background:#e8ebee} button,input,select{font:inherit} button{cursor:pointer}
-    .app{min-height:100vh;display:grid;grid-template-rows:48px 1fr}.topbar{background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;box-shadow:0 1px 4px rgba(0,0,0,.22);z-index:5}.brand{display:flex;gap:10px;align-items:center;font-weight:600}.sidebar-toggle{width:32px;height:32px;border:0;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;font-size:18px;display:grid;place-items:center}.sidebar-toggle:hover{background:rgba(255,255,255,.22)}.brand-mark{width:28px;height:28px;border-radius:6px;background:#fff;color:var(--blue);display:grid;place-items:center;font-weight:800}.sync-status{font-size:13px;opacity:.92;display:flex;gap:7px;align-items:center}.status-dot{width:8px;height:8px;border-radius:50%;background:#ffd166}.status-dot.online{background:#66d19e}.status-dot.error{background:#ff8c8c}
-    .workspace{min-height:0;display:grid;grid-template-columns:280px minmax(0,1fr);transition:grid-template-columns .2s ease}.workspace.sidebar-hidden{grid-template-columns:0 minmax(0,1fr)}.workspace.sidebar-hidden .sidebar{padding-left:0;padding-right:0;border-right:0;overflow:hidden}.sidebar{background:var(--sidebar);border-right:1px solid #d4d9de;padding:18px 12px;overflow-y:auto}.sidebar-heading{display:flex;justify-content:space-between;align-items:center;padding:0 8px 12px}.sidebar-heading h2{font-size:14px;margin:0;letter-spacing:.02em;color:#52606d;text-transform:uppercase}.icon-button{border:0;background:transparent;color:var(--blue);width:34px;height:34px;border-radius:6px;font-size:24px;line-height:1}.icon-button:hover{background:var(--blue-soft)}.list-tabs{display:grid;gap:4px}.list-tab{position:relative;display:grid;cursor:grab;grid-template-columns:5px minmax(0,1fr) 32px;align-items:center;min-height:44px;border-radius:5px}.list-tab:hover{background:#e7ebef}.list-tab.dragging{opacity:.45}.list-tab.drag-over{box-shadow:inset 0 2px 0 var(--blue)}.list-tab.active{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}.list-tab.active .tab-accent{background:var(--blue)}.tab-accent{height:70%;border-radius:3px;background:transparent}.tab-title{border:0;background:transparent;text-align:left;padding:10px 9px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:inherit}.tab-menu{border:0;background:transparent;color:#68727d;border-radius:5px;height:30px}.tab-menu:hover{background:#d9e0e6;color:#1f2933}
-    .context-menu{position:fixed;z-index:30;width:210px;background:#fff;border:1px solid #d8dee4;border-radius:8px;box-shadow:var(--shadow);padding:6px;display:none}.context-menu.open{display:block}.menu-button{width:100%;border:0;background:#fff;text-align:left;padding:10px 11px;border-radius:6px;color:#263442}.menu-button:hover{background:var(--blue-soft)}.menu-button.danger{color:var(--danger)}.menu-separator{height:1px;background:var(--line);margin:5px}
-    .main{min-width:0;background:var(--paper);overflow-y:auto;padding:42px clamp(22px,6vw,90px) 80px}.note{max-width:980px;margin:0 auto}.list-title{width:100%;border:0;outline:none;background:transparent;font-size:clamp(30px,4vw,44px);font-weight:350;padding:0 0 9px;border-bottom:2px solid var(--blue)}.note-meta{margin:9px 0 22px;font-size:12px;color:var(--muted)}
-    .filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;padding:11px 12px;background:#f6f8fa;border:1px solid var(--line);border-radius:8px}.filter-label{font-size:12px;font-weight:600;color:#536273;text-transform:uppercase;letter-spacing:.03em}.filter-select{border:1px solid #cfd7df;background:#fff;border-radius:6px;padding:7px 30px 7px 9px;color:#344454;outline:none}.filter-select:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(23,63,109,.12)}.filter-count{margin-left:auto;color:var(--muted);font-size:12px}
-    .column-headings,.item-row,.new-item-row{display:grid;grid-template-columns:42px minmax(180px,1fr) minmax(120px,220px) 36px;gap:10px;align-items:center;padding-left:6px;padding-right:6px}.column-headings{padding-bottom:8px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line)}.items{display:grid}.item-row{position:relative;min-height:50px;border-bottom:1px solid var(--line);padding-top:3px;padding-bottom:3px}.item-row:focus-within{background:#f8fbff}.item-row.dragging{opacity:.45}.item-row.drag-over{box-shadow:inset 0 2px 0 var(--blue)}.drag-handle{position:absolute;left:-25px;top:50%;transform:translateY(-50%);width:22px;height:30px;border:0;background:transparent;color:#9aa4ae;cursor:grab;opacity:0;font-size:15px;line-height:1}.item-row:hover .drag-handle,.drag-handle:focus{opacity:1}.drag-handle:active{cursor:grabbing}.drag-handle:disabled{cursor:not-allowed;opacity:.25}.check-button,.add-item-button{width:25px;height:25px;border:1.5px solid #66717c;background:#fff;border-radius:50%;display:grid;place-items:center;padding:0;font-size:15px}.item-row.done .check-button{background:var(--blue);border-color:var(--blue);color:#fff}.item-row.done .item-text{text-decoration:line-through;color:#888}.cell-input{width:100%;border:0;outline:none;background:transparent;min-height:38px;padding:8px 4px}.item-text{font-size:16px}.assignee{color:#4f5963;font-size:14px}.delete-item{border:0;background:transparent;color:#999;height:32px;border-radius:5px;opacity:0}.item-row:hover .delete-item,.delete-item:focus{opacity:1}.delete-item:hover{background:#fbe9e7;color:var(--danger)}
-    .new-item-row{min-height:50px;margin-top:0;border-bottom:1px solid var(--line);padding-top:3px;padding-bottom:3px}.add-item-button{color:var(--blue);border-color:var(--blue);font-weight:700;font-size:0;display:flex;align-items:center;justify-content:center;line-height:0}.add-item-button::before{content:"+";display:block;font-size:20px;line-height:1;transform:translateY(-1px)}.add-item-button:hover{background:var(--blue);color:#fff}.new-input{border:0;outline:none;background:transparent;min-height:38px;padding:8px 4px}.new-input::placeholder{color:#8b96a1}.empty-state{padding:32px 10px;color:var(--muted);text-align:center;border-bottom:1px solid var(--line)}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(15,30,45,.35);z-index:40;display:none;align-items:center;justify-content:center;padding:20px}.modal-backdrop.open{display:flex}.modal{width:min(420px,100%);background:#fff;border-radius:10px;box-shadow:var(--shadow);padding:22px}.modal h3{margin:0 0 8px;font-size:20px}.modal p{margin:0 0 16px;color:var(--muted);line-height:1.45}.modal input{width:100%;border:1px solid #cbd4dc;border-radius:7px;padding:10px 11px;outline:none}.modal input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,63,109,.12)}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.btn{border:1px solid #cbd4dc;border-radius:7px;padding:8px 14px;background:#fff}.btn:hover{background:#f3f6f8}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:var(--blue-dark)}.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
-    .toast{position:fixed;right:20px;bottom:20px;padding:12px 16px;border-radius:7px;color:#fff;background:#253443;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s;z-index:60}.toast.show{opacity:1;transform:translateY(0)}
-    @media(max-width:760px){.workspace{grid-template-columns:150px minmax(0,1fr)}.workspace.sidebar-hidden{grid-template-columns:0 minmax(0,1fr)}.sidebar{padding:14px 6px}.main{padding:28px 14px 60px}.column-headings,.item-row,.new-item-row{grid-template-columns:35px minmax(110px,1fr) 100px 28px;gap:4px}.column-headings{font-size:9px}.item-text{font-size:14px}.assignee{font-size:12px}.filters{padding:9px}.filter-count{width:100%;margin-left:0}}
-  
-    .user-area{display:flex;align-items:center;gap:10px}.user-email{font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.top-btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:6px;padding:6px 10px}.top-btn:hover{background:rgba(255,255,255,.22)}
-    .share-button{margin-left:auto;border:1px solid var(--blue);background:#fff;color:var(--blue);border-radius:7px;padding:7px 11px;font-weight:600}.share-button:hover{background:var(--blue-soft)}.share-button[hidden]{display:none}
-    .auth-gate{position:fixed;inset:0;z-index:100;background:linear-gradient(145deg,#0f2e52,#173f6d);display:flex;align-items:center;justify-content:center;padding:22px}.auth-gate.hidden{display:none}.auth-card{width:min(440px,100%);background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:30px}.auth-card h1{margin:0 0 8px;color:var(--blue)}.auth-card p{color:var(--muted);line-height:1.5}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#edf1f5;border-radius:9px;padding:4px;margin:20px 0 15px}.auth-tab{border:0;border-radius:7px;background:transparent;padding:9px;font-weight:600;color:#52606d}.auth-tab.active{background:#fff;color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.1)}.auth-panel[hidden]{display:none}.auth-label{display:block;font-size:13px;font-weight:600;color:#445363;margin-top:10px}.auth-card input{width:100%;border:1px solid #cbd4dc;border-radius:8px;padding:12px;margin:6px 0 5px;outline:none}.auth-card input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,63,109,.12)}.auth-card .btn{width:100%;padding:11px;margin-top:12px}.auth-link{border:0;background:transparent;color:var(--blue);padding:8px 0;font-size:13px;text-decoration:underline}.auth-actions{text-align:right}.oauth-buttons{display:grid;gap:12px}.oauth-btn{width:100%;min-height:48px;border:1px solid #cbd4dc;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 14px;font-weight:600;color:#263442}.oauth-btn:hover{background:#f6f8fa;border-color:#aeb9c3}.oauth-btn:disabled{opacity:.6;cursor:wait}.oauth-icon{width:22px;height:22px;display:grid;place-items:center;flex:0 0 22px}.google-icon{font-family:Arial,sans-serif;font-size:20px;font-weight:700;color:#4285f4}.auth-divider{display:flex;align-items:center;gap:12px;color:#87919b;font-size:12px;margin:20px 0}.auth-divider::before,.auth-divider::after{content:"";height:1px;background:#dfe4e9;flex:1}.auth-note{font-size:12px;margin-top:13px}.auth-message{font-size:13px;min-height:20px;color:var(--blue);margin-top:10px}.auth-message.error{color:var(--danger)}.password-hint{font-size:11px;color:#7a8691;margin:2px 0 6px}.reset-panel{padding-top:4px}
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #64748b;
+      --border: #dbe3ef;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --good: #15803d;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --purple: #7c3aed;
+      --teal: #0f766e;
+      --target: #d97706;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, #e7efff 0, transparent 34rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.55rem, 3vw, 2rem);
+    }
+
+    .brand p {
+      margin: 7px 0 0;
+      color: var(--muted);
+    }
+
+    .goal-badge {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border: 1px solid #c8d8fb;
+      border-radius: 999px;
+      background: #edf4ff;
+      color: #1e3a8a;
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .card {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 12px 32px rgba(41, 61, 92, .07);
+    }
+
+    .dashboard-grid > .card {
+      height: 100%;
+    }
+
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 1.15rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: #334155;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-width: 0;
+      padding: 11px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 11px;
+      background: white;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .button {
+      min-height: 42px;
+      padding: 10px 15px;
+      border: 0;
+      border-radius: 11px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .button.primary {
+      color: white;
+      background: var(--accent);
+    }
+
+    .button.primary:hover { background: var(--accent-dark); }
+
+    .button.secondary {
+      color: #334155;
+      background: #e9eef6;
+    }
+
+    .button.danger {
+      color: #991b1b;
+      background: #fee2e2;
+    }
+
+    .helper {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: .85rem;
+      line-height: 1.5;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #f8fafc;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .metric-value {
+      margin-top: 7px;
+      font-size: clamp(1.25rem, 3vw, 1.7rem);
+      font-weight: 850;
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 18px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #eef2f7;
+      font-weight: 800;
+    }
+
+    .status.good { color: var(--good); background: #dcfce7; }
+    .status.warn { color: var(--warn); background: #fef3c7; }
+    .status.bad { color: var(--bad); background: #fee2e2; }
+
+    .charts {
+      display: grid;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .chart-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 12px 32px rgba(41, 61, 92, .05);
+    }
+
+    .chart-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chart-heading h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .chart-heading p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px 14px;
+      color: #475569;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-line {
+      width: 20px;
+      height: 3px;
+      border-radius: 99px;
+      background: currentColor;
+    }
+
+    .legend-line.dashed {
+      height: 0;
+      border-top: 2px dashed currentColor;
+      background: none;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 270px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .history-card {
+      margin-top: 18px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #e5eaf2;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #475569;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    td { font-size: .9rem; }
+
+    .delete-row {
+      padding: 6px 9px;
+      border: 0;
+      border-radius: 8px;
+      color: #991b1b;
+      background: #fee2e2;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    .empty {
+      padding: 32px 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .message {
+      min-height: 22px;
+      margin-top: 12px;
+      color: var(--good);
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 760px) {
+      .topbar { flex-direction: column; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .chart-heading { flex-direction: column; }
+      .legend { justify-content: flex-start; }
+      .canvas-wrap { height: 240px; }
+    }
+
+    @media (max-width: 430px) {
+      .app { width: min(100% - 20px, 1120px); padding-top: 18px; }
+      .card, .chart-card { padding: 16px; border-radius: 15px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .actions .button { width: 100%; }
+    }
+
+    dialog.confirm-dialog {
+      width: min(520px, calc(100% - 32px));
+      padding: 0;
+      border: 0;
+      border-radius: 18px;
+      background: white;
+      color: var(--text);
+      box-shadow: 0 24px 80px rgba(15, 23, 42, .28);
+    }
+
+    dialog.confirm-dialog::backdrop {
+      background: rgba(15, 23, 42, .58);
+      backdrop-filter: blur(2px);
+    }
+
+    .dialog-content {
+      padding: 24px;
+    }
+
+    .dialog-icon {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      margin-bottom: 14px;
+      border-radius: 50%;
+      background: #fee2e2;
+      color: #991b1b;
+      font-size: 1.35rem;
+      font-weight: 900;
+    }
+
+    .dialog-icon.warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .dialog-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .dialog-message {
+      margin: 10px 0 0;
+      color: #475569;
+      line-height: 1.55;
+      white-space: pre-line;
+    }
+
+    .dialog-details {
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #334155;
+      line-height: 1.55;
+      white-space: pre-line;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .dialog-actions .button {
+      min-width: 110px;
+    }
+
+    @media (max-width: 520px) {
+      .dialog-content {
+        padding: 20px;
+      }
+
+      .dialog-actions {
+        flex-direction: column-reverse;
+      }
+
+      .dialog-actions .button {
+        width: 100%;
+      }
+    }
+
   </style>
 </head>
 <body>
-<div class="app">
-<header class="topbar"><div class="brand"><button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Hide lists" title="Hide lists">☰</button><div class="brand-mark">S</div>SharedLists</div><div class="user-area"><div class="sync-status"><span id="statusDot" class="status-dot"></span><span id="statusText">Sign in required</span></div><span id="userEmail" class="user-email"></span><button id="signOutButton" class="top-btn" type="button" hidden>Sign out</button></div></header>
-<div id="workspace" class="workspace">
-<aside class="sidebar"><div class="sidebar-heading"><h2>Lists</h2><button id="addListButton" class="icon-button" aria-label="Create a new list" title="New list">+</button></div><nav id="listTabs" class="list-tabs" aria-label="Lists"></nav></aside>
-<main class="main"><section class="note">
-<input id="listTitle" class="list-title" aria-label="List title"/><div id="noteMeta" class="note-meta"></div>
-<div class="filters"><span class="filter-label">Filter</span><select id="statusFilter" class="filter-select"><option value="all">All statuses</option><option value="open">Open</option><option value="checked">Checked</option></select><select id="assigneeFilter" class="filter-select"><option value="all">All people</option><option value="unassigned">Unassigned</option></select><span id="filterCount" class="filter-count"></span><button id="shareListButton" class="share-button" type="button" hidden>Share list</button></div>
-<div class="column-headings"><span>Status</span><span>Item</span><span>Assigned person</span><span></span></div><div id="items" class="items"></div>
-<form id="newItemForm" class="new-item-row"><button class="add-item-button" type="submit" title="Add item" aria-label="Add item">+</button><input id="newItemText" class="new-input" placeholder="Add something not to forget…" autocomplete="off"/><input id="newAssignee" class="new-input" placeholder="Name" autocomplete="off"/><span></span></form>
-</section></main></div></div>
-<div id="authGate" class="auth-gate"><div class="auth-card">
-<h1>SharedLists</h1><p>Sign in securely. You will only see lists you own or lists shared with your email address.</p>
-<div id="normalAuthPanel">
-  <div class="auth-tabs" role="tablist"><button id="signInTab" class="auth-tab active" type="button">Sign in</button><button id="signUpTab" class="auth-tab" type="button">Create account</button></div>
-  <form id="emailAuthForm" class="auth-panel">
-    <label class="auth-label" for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email" required placeholder="name@example.com" />
-    <label class="auth-label" for="authPassword">Password</label><input id="authPassword" type="password" autocomplete="current-password" required minlength="8" placeholder="At least 8 characters" />
-    <div class="password-hint">Use at least 8 characters.</div>
-    <button id="emailAuthSubmit" class="btn primary" type="submit">Sign in</button>
-    <div id="forgotPasswordArea" class="auth-actions"><button id="forgotPasswordButton" class="auth-link" type="button">Forgot password?</button></div>
-  </form>
-  <div class="auth-divider">or</div>
-  <div class="oauth-buttons"><button id="googleSignIn" class="oauth-btn" type="button"><span class="oauth-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="22" height="22">
-        <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.92h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.41Z"/>
-        <path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.36l-3.24-2.54c-.9.6-2.05.96-3.38.96-2.61 0-4.82-1.76-5.61-4.13H3.04v2.62A10 10 0 0 0 12 22Z"/>
-        <path fill="#FBBC05" d="M6.39 13.93A6.02 6.02 0 0 1 6.08 12c0-.67.12-1.32.31-1.93V7.45H3.04A10 10 0 0 0 2 12c0 1.61.38 3.14 1.04 4.55l3.35-2.62Z"/>
-        <path fill="#EA4335" d="M12 5.94c1.47 0 2.79.51 3.83 1.5l2.87-2.87A9.62 9.62 0 0 0 12 2a10 10 0 0 0-8.96 5.45l3.35 2.62C7.18 7.7 9.39 5.94 12 5.94Z"/>
-      </svg>
-    </span><span>Continue with Google</span></button></div>
-  <p class="auth-note">Sign in with Google or continue using email and password.</p>
-</div>
-<form id="resetPasswordPanel" class="reset-panel" hidden>
-  <h2>Set a new password</h2><p>Enter a new password for your account.</p>
-  <label class="auth-label" for="newPassword">New password</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters" />
-  <label class="auth-label" for="confirmNewPassword">Confirm new password</label><input id="confirmNewPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Repeat password" />
-  <button class="btn primary" type="submit">Update password</button>
-</form>
-<div id="authMessage" class="auth-message" role="status"></div>
-</div></div>
-<div id="listMenu" class="context-menu"><button class="menu-button" data-action="rename">Rename list</button><button class="menu-button" data-action="duplicate">Duplicate as new list</button><button class="menu-button" data-action="export-text">Download as Text</button><button class="menu-button" data-action="clear">Remove all checks</button><div class="menu-separator"></div><button class="menu-button danger" data-action="delete">Delete list</button></div>
-<div id="modalBackdrop" class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><h3 id="modalTitle"></h3><p id="modalMessage"></p><input id="modalInput" autocomplete="off"/><div class="modal-actions"><button id="modalCancel" class="btn" type="button">Cancel</button><button id="modalConfirm" class="btn primary" type="button">Confirm</button></div></div></div>
-<div id="toast" class="toast" role="status"></div>
-<script>
-const RAW_SUPABASE_URL=(window.APP_CONFIG?.SUPABASE_URL||"").trim();
-const SUPABASE_URL=RAW_SUPABASE_URL && !RAW_SUPABASE_URL.startsWith("http") ? `https://${RAW_SUPABASE_URL}.supabase.co` : RAW_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY=(window.APP_CONFIG?.SUPABASE_PUBLISHABLE_KEY||window.APP_CONFIG?.SUPABASE_ANON_KEY||"").trim();
-const localKey="todolist-private-v1"; const isPlaceholder=value=>!value||value.includes("PASTE_YOUR_")||value.includes("YOUR-PROJECT-REF")||value.includes("YOUR-PUBLISHABLE"); const isSupabaseConfigured=!isPlaceholder(SUPABASE_URL)&&!isPlaceholder(SUPABASE_PUBLISHABLE_KEY); const supabaseClient=isSupabaseConfigured?window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY):null;
-let currentUser=null;
-let authMode="signin";
-function setAuthMessage(message="",isError=false){const el=$("#authMessage");el.textContent=message;el.classList.toggle("error",isError)}
-function showAuthGate(message=""){ $("#authGate").classList.remove("hidden"); setAuthMessage(message); $("#signOutButton").hidden=true; $("#userEmail").textContent=""; }
-function hideAuthGate(){ $("#authGate").classList.add("hidden"); $("#signOutButton").hidden=false; $("#userEmail").textContent=currentUser?.email||""; setAuthMessage(); }
-function appRedirectUrl(){return "https://mgoldeli.github.io/SharedLists/";}
-function switchAuthMode(mode){authMode=mode;const signUp=mode==="signup";$("#signInTab").classList.toggle("active",!signUp);$("#signUpTab").classList.toggle("active",signUp);$("#emailAuthSubmit").textContent=signUp?"Create account":"Sign in";$("#authPassword").autocomplete=signUp?"new-password":"current-password";$("#forgotPasswordArea").hidden=signUp;setAuthMessage()}
-function showPasswordRecovery(){$("#normalAuthPanel").hidden=true;$("#resetPasswordPanel").hidden=false;showAuthGate("Choose a new password.");$("#newPassword").focus()}
-async function signInWithProvider(provider){const button=$("#googleSignIn");button.disabled=true;setAuthMessage("Redirecting to Google…");const{error}=await supabaseClient.auth.signInWithOAuth({provider,options:{redirectTo:appRedirectUrl()}});if(error){button.disabled=false;throw error}}
-async function createAccount(email,password){const{data,error}=await supabaseClient.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:appRedirectUrl()}});if(error)throw error;return data}
-async function signInWithEmail(email,password){const{data,error}=await supabaseClient.auth.signInWithPassword({email:email.trim(),password});if(error)throw error;return data}
-async function sendPasswordReset(email){const{error}=await supabaseClient.auth.resetPasswordForEmail(email.trim(),{redirectTo:appRedirectUrl()});if(error)throw error}
-async function setNewPassword(password){const{error}=await supabaseClient.auth.updateUser({password});if(error)throw error}
-async function shareActiveList(){const list=activeList();if(!list||!currentUser)return;if(list.owner_id!==currentUser.id){showToast("Only the list owner can share it");return}const email=await openModal({title:"Share this list",message:"Enter the email address that should receive access. They can then sign in with that same email.",inputValue:"",confirmText:"Share"});if(!email)return;const clean=email.trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)){showToast("Enter a valid email address");return}const{error}=await supabaseClient.from("shared_list_members").upsert({list_id:list.id,invited_email:clean,role:"editor"},{onConflict:"list_id,invited_email"});if(error)throw error;showToast(`Access granted to ${clean}. They must create or sign in to an account using that exact email.`);}
-let state={lists:[],items:[],activeListId:null}; let filters={status:"all",assignee:"all"}; let menuListId=null;
-const $=s=>document.querySelector(s),listTabs=$("#listTabs"),itemsContainer=$("#items"),listTitleInput=$("#listTitle"),noteMeta=$("#noteMeta"),statusDot=$("#statusDot"),statusText=$("#statusText");
-function uid(){return (self.crypto&&crypto.randomUUID)?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}-${Math.random().toString(16).slice(2)}`}
-function nowIso(){return new Date().toISOString()}
-function seedState(){const a=uid(),b=uid(),c=uid();return{activeListId:a,lists:[{id:a,name:"Grill List",position:0,created_at:nowIso(),updated_at:nowIso()},{id:b,name:"Shopping List",position:1,created_at:nowIso(),updated_at:nowIso()},{id:c,name:"Vacation List",position:2,created_at:nowIso(),updated_at:nowIso()}],items:[{id:uid(),list_id:a,text:"Charcoal and firelighters",assignee:"Mert",is_checked:false,position:0,created_at:nowIso(),updated_at:nowIso()},{id:uid(),list_id:a,text:"Meat thermometer",assignee:"Arda",is_checked:true,position:1,created_at:nowIso(),updated_at:nowIso()},{id:uid(),list_id:b,text:"Olive oil",assignee:"",is_checked:false,position:0,created_at:nowIso(),updated_at:nowIso()},{id:uid(),list_id:c,text:"Passports",assignee:"Mert",is_checked:false,position:0,created_at:nowIso(),updated_at:nowIso()}]}}
-function saveLocal(){localStorage.setItem(localKey,JSON.stringify(state))} function loadLocal(){const saved=localStorage.getItem(localKey);state=saved?JSON.parse(saved):seedState();if(!saved)saveLocal()} function activeList(){return state.lists.find(x=>x.id===state.activeListId)||state.lists[0]||null}
-function showToast(message){const t=$("#toast");t.textContent=message;t.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove("show"),1900)} function setSyncStatus(mode,text){statusDot.className=`status-dot ${mode||""}`.trim();statusText.textContent=text}
-async function loadFromSupabase(){
-  const [{data:lists,error:le},{data:items,error:ie}]=await Promise.all([
-    supabaseClient.from("shared_lists").select("*").order("position"),
-    supabaseClient.from("shared_list_items").select("*").order("position")
-  ]);
-  if(le) throw new Error(`Lists table: ${le.message}`);
-  if(ie) throw new Error(`Items table: ${ie.message}`);
-  state.lists=lists||[];
-  state.items=items||[];
-  state.activeListId=localStorage.getItem(`${localKey}-active`)||state.lists[0]?.id||null;
-  if(state.activeListId&&!state.lists.some(x=>x.id===state.activeListId)) state.activeListId=state.lists[0]?.id||null;
-}
-async function initialize(){try{if(!isSupabaseConfigured){setSyncStatus("error","Setup required");showAuthGate("Add Supabase credentials in config.js.");return}const{data:{session},error}=await supabaseClient.auth.getSession();if(error)throw error;if(!session){state={lists:[],items:[],activeListId:null};render();showAuthGate();setSyncStatus("","Sign in required");return}currentUser=session.user;hideAuthGate();setSyncStatus("","Connecting…");const{error:claimError}=await supabaseClient.rpc("claim_unowned_shared_lists");if(claimError)console.warn("Legacy-list claim:",claimError.message);await loadFromSupabase();setSyncStatus("online","Secure sync connected");subscribeToChanges();render()}catch(e){console.error(e);state={lists:[],items:[],activeListId:null};setSyncStatus("error","Supabase error");render();showAuthGate(e.message||"Could not connect to Supabase")}}
-let realtimeChannel=null;async function subscribeToChanges(){if(realtimeChannel){await supabaseClient.removeChannel(realtimeChannel);realtimeChannel=null}realtimeChannel=supabaseClient.channel("shared-lists-live-"+(currentUser?.id||"anonymous")).on("postgres_changes",{event:"*",schema:"public",table:"shared_lists"},refreshRemote).on("postgres_changes",{event:"*",schema:"public",table:"shared_list_items"},refreshRemote).subscribe(status=>{if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")console.warn("Realtime status:",status)})} let refreshTimer;function refreshRemote(){clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{const id=state.activeListId;await loadFromSupabase();if(state.lists.some(x=>x.id===id))state.activeListId=id;render()}catch(e){console.error(e)}},150)}
-function render(){renderTabs();renderActiveList()}
-function renderTabs(){listTabs.innerHTML="";[...state.lists].sort((a,b)=>a.position-b.position).forEach(list=>{const w=document.createElement("div");w.className=`list-tab ${list.id===state.activeListId?"active":""}`;w.dataset.id=list.id;w.draggable=true;w.innerHTML='<span class="tab-accent"></span><button class="tab-title" type="button"></button><button class="tab-menu" type="button" title="List options">•••</button>';w.querySelector(".tab-title").textContent=list.name;w.querySelector(".tab-title").onclick=()=>{state.activeListId=list.id;filters={status:"all",assignee:"all"};localStorage.setItem(`${localKey}-active`,list.id);if(!isSupabaseConfigured)saveLocal();render()};w.querySelector(".tab-menu").onclick=e=>openListMenu(e,list.id);w.addEventListener("dragstart",e=>{if(e.target.closest("button")){e.preventDefault();return}w.classList.add("dragging");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",list.id)});w.addEventListener("dragover",e=>{e.preventDefault();const dragging=listTabs.querySelector(".dragging");if(!dragging||dragging===w)return;const before=e.clientY<w.getBoundingClientRect().top+w.offsetHeight/2;listTabs.insertBefore(dragging,before?w:w.nextSibling);w.classList.add("drag-over")});w.addEventListener("dragleave",()=>w.classList.remove("drag-over"));w.addEventListener("drop",e=>{e.preventDefault();w.classList.remove("drag-over")});w.addEventListener("dragend",()=>{w.classList.remove("dragging");listTabs.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"));persistListOrder([...listTabs.querySelectorAll(".list-tab")].map(x=>x.dataset.id))});listTabs.appendChild(w)})}
-function renderActiveList(){const list=activeList();const shareBtn=$("#shareListButton");shareBtn.hidden=!list||!currentUser||list.owner_id!==currentUser.id;if(!list){listTitleInput.value="";noteMeta.textContent="";itemsContainer.innerHTML='<div class="empty-state">Create your first list with the + button.</div>';$("#newItemForm").style.display="none";$(".filters").style.display="none";return}$("#newItemForm").style.display="grid";$(".filters").style.display="flex";listTitleInput.value=list.name;noteMeta.textContent=`Shared list • Last edited ${new Date(list.updated_at||list.created_at).toLocaleString()}`;const all=state.items.filter(i=>i.list_id===list.id).sort((a,b)=>a.position-b.position);updateAssigneeFilter(all);const visible=all.filter(i=>(filters.status==="all"||(filters.status==="open"&&!i.is_checked)||(filters.status==="checked"&&i.is_checked))&&(filters.assignee==="all"||(filters.assignee==="unassigned"&&!i.assignee)||(i.assignee===filters.assignee)));$("#statusFilter").value=filters.status;$("#assigneeFilter").value=filters.assignee;$("#filterCount").textContent=`${visible.length} of ${all.length} items`;itemsContainer.innerHTML="";if(!visible.length){itemsContainer.innerHTML=`<div class="empty-state">${all.length?"No items match these filters.":"Nothing here yet. Add the first item below."}</div>`;return}visible.forEach(item=>{const row=document.createElement("div");row.className=`item-row ${item.is_checked?"done":""}`;row.dataset.id=item.id;row.innerHTML=`<button class="drag-handle" type="button" draggable="${filters.status==="all"&&filters.assignee==="all"}" aria-label="Drag to reorder" title="${filters.status==="all"&&filters.assignee==="all"?"Drag to reorder":"Clear filters to reorder"}">⋮⋮</button><button class="check-button" type="button" aria-label="Toggle item">${item.is_checked?"✓":""}</button><input class="cell-input item-text" aria-label="Item text"/><input class="cell-input assignee" aria-label="Assigned person" placeholder="Name"/><button class="delete-item" type="button" aria-label="Delete item" title="Delete">×</button>`;const ti=row.querySelector(".item-text"),ai=row.querySelector(".assignee"),handle=row.querySelector(".drag-handle");ti.value=item.text;ai.value=item.assignee||"";row.querySelector(".check-button").onclick=()=>updateItem(item.id,{is_checked:!item.is_checked});ti.onchange=()=>updateItem(item.id,{text:ti.value.trim()||"Untitled item"});ai.onchange=()=>updateItem(item.id,{assignee:ai.value.trim()});row.querySelector(".delete-item").onclick=()=>deleteItem(item.id);handle.disabled=filters.status!=="all"||filters.assignee!=="all";handle.addEventListener("dragstart",e=>{if(handle.disabled){e.preventDefault();showToast("Clear filters before reordering items");return}row.classList.add("dragging");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",item.id)});row.addEventListener("dragover",e=>{const dragging=itemsContainer.querySelector(".dragging");if(!dragging||dragging===row)return;e.preventDefault();const before=e.clientY<row.getBoundingClientRect().top+row.offsetHeight/2;itemsContainer.insertBefore(dragging,before?row:row.nextSibling);row.classList.add("drag-over")});row.addEventListener("dragleave",()=>row.classList.remove("drag-over"));row.addEventListener("drop",e=>{e.preventDefault();row.classList.remove("drag-over")});handle.addEventListener("dragend",()=>{row.classList.remove("dragging");itemsContainer.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"));persistItemOrder([...itemsContainer.querySelectorAll(".item-row")].map(x=>x.dataset.id))});itemsContainer.appendChild(row)})}
-function updateAssigneeFilter(items){const select=$("#assigneeFilter"),current=filters.assignee,names=[...new Set(items.map(i=>i.assignee).filter(Boolean))].sort((a,b)=>a.localeCompare(b));select.innerHTML='<option value="all">All people</option><option value="unassigned">Unassigned</option>'+names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");if(current!=="all"&&current!=="unassigned"&&!names.includes(current))filters.assignee="all"} function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
-function openListMenu(e,id){e.stopPropagation();menuListId=id;const m=$("#listMenu"),r=e.currentTarget.getBoundingClientRect();m.style.left=`${Math.min(r.left,innerWidth-220)}px`;m.style.top=`${Math.min(r.bottom+4,innerHeight-190)}px`;m.classList.add("open")} function closeListMenu(){$("#listMenu").classList.remove("open")}
-function openModal({title,message="",inputValue=null,confirmText="Confirm",danger=false}){return new Promise(resolve=>{const back=$("#modalBackdrop"),input=$("#modalInput"),confirm=$("#modalConfirm");$("#modalTitle").textContent=title;$("#modalMessage").textContent=message;input.style.display=inputValue===null?"none":"block";input.value=inputValue??"";confirm.textContent=confirmText;confirm.className=`btn ${danger?"danger":"primary"}`;back.classList.add("open");if(inputValue!==null)setTimeout(()=>{input.focus();input.select()},0);const done=value=>{back.classList.remove("open");confirm.onclick=null;$("#modalCancel").onclick=null;input.onkeydown=null;resolve(value)};confirm.onclick=()=>done(inputValue===null?true:input.value.trim());$("#modalCancel").onclick=()=>done(null);input.onkeydown=e=>{if(e.key==="Enter")confirm.click();if(e.key==="Escape")done(null)}})}
-async function createList(){const name=await openModal({title:"Create a new list",message:"Give the shared list a clear name.",inputValue:"New List",confirmText:"Create"});if(!name)return;try{const list={id:uid(),name:name.trim(),position:state.lists.length,created_at:nowIso(),updated_at:nowIso(),owner_id:currentUser?.id||null};if(isSupabaseConfigured){const{error}=await supabaseClient.from("shared_lists").insert(list);if(error)throw error}else{saveLocal()}state.lists.push(list);state.activeListId=list.id;localStorage.setItem(`${localKey}-active`,list.id);render();listTitleInput.focus();showToast("List created")}catch(e){handleError(e)}}
-async function renameList(id,newName){const list=state.lists.find(x=>x.id===id);if(!list||!newName.trim()||list.name===newName.trim())return;const old=list.name;list.name=newName.trim();list.updated_at=nowIso();try{if(isSupabaseConfigured){const{error}=await supabaseClient.from("shared_lists").update({name:list.name,updated_at:list.updated_at}).eq("id",id);if(error)throw error}else saveLocal();render()}catch(e){list.name=old;handleError(e)}}
-async function duplicateList(id){const source=state.lists.find(x=>x.id===id);if(!source)return;const name=await openModal({title:"Duplicate list",message:"The items and their current check status will be copied.",inputValue:`${source.name} Copy`,confirmText:"Duplicate"});if(!name)return;const newList={id:uid(),name,position:state.lists.length,created_at:nowIso(),updated_at:nowIso()};const copied=state.items.filter(i=>i.list_id===id).map((i,p)=>({...i,id:uid(),list_id:newList.id,position:p,created_at:nowIso(),updated_at:nowIso()}));state.lists.push(newList);state.items.push(...copied);state.activeListId=newList.id;try{if(isSupabaseConfigured){let{error}=await supabaseClient.from("shared_lists").insert(newList);if(error)throw error;if(copied.length){({error}=await supabaseClient.from("shared_list_items").insert(copied));if(error)throw error}}else saveLocal();render();showToast("List duplicated")}catch(e){state.lists=state.lists.filter(x=>x.id!==newList.id);state.items=state.items.filter(x=>x.list_id!==newList.id);handleError(e)}}
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>BodyMassTracker</h1>
+        <p>Daily calorie, deficit and weight tracking.</p>
+      </div>
+      <div class="goal-badge">Goal: 103 kg → 97 kg</div>
+    </header>
 
-function downloadListAsText(id){
-  const list=state.lists.find(x=>x.id===id);
-  if(!list){showToast("List not found");return}
-  const listItems=state.items.filter(i=>i.list_id===id).sort((a,b)=>a.position-b.position);
-  const completed=listItems.filter(i=>i.is_checked).length;
-  const open=listItems.length-completed;
-  const lines=[
-    "========================================",
-    "DO NOT FORGET",
-    "========================================",
-    "",
-    `List: ${list.name}`,
-    "",
-    "----------------------------------------",
-    ""
-  ];
-  if(listItems.length){
-    listItems.forEach((item,index)=>{
-      lines.push(`${item.is_checked?"☑":"☐"} ${item.text||"Untitled item"}`);
-      if(item.assignee?.trim()) lines.push(`   Assigned to: ${item.assignee.trim()}`);
-      if(index<listItems.length-1) lines.push("");
-    });
-  }else{
-    lines.push("No items in this list.");
-  }
-  lines.push(
-    "",
-    "----------------------------------------",
-    "",
-    `Completed : ${completed}`,
-    `Open      : ${open}`,
-    `Total     : ${listItems.length}`,
-    "",
-    `Exported: ${new Date().toLocaleString()}`
-  );
-  const text=lines.join("\n");
-  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement("a");
-  const safeName=(list.name||"list").trim().replace(/[<>:"/\\|?*\x00-\x1F]/g,"-").replace(/\s+/g," ").slice(0,100)||"list";
-  link.href=url;
-  link.download=`${safeName}.txt`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-  showToast("Text file downloaded");
-}
 
-async function deleteList(id){const list=state.lists.find(x=>x.id===id);if(!list)return;const ok=await openModal({title:"Delete this list?",message:`“${list.name}” and all of its items will be permanently deleted.`,confirmText:"Delete",danger:true});if(!ok)return;try{if(isSupabaseConfigured){const{error}=await supabaseClient.from("shared_lists").delete().eq("id",id);if(error)throw error}state.lists=state.lists.filter(x=>x.id!==id);state.items=state.items.filter(x=>x.list_id!==id);state.activeListId=state.lists[0]?.id||null;if(!isSupabaseConfigured)saveLocal();render();showToast("List deleted")}catch(e){handleError(e)}}
-async function clearChecks(id){const checked=state.items.filter(i=>i.list_id===id&&i.is_checked);if(!checked.length){showToast("This list has no checked items");return}const ok=await openModal({title:"Remove all checks?",message:`This will mark ${checked.length} checked item${checked.length===1?"":"s"} as open again.`,confirmText:"Remove checks"});if(!ok)return;try{if(isSupabaseConfigured){const{error}=await supabaseClient.from("shared_list_items").update({is_checked:false,updated_at:nowIso()}).eq("list_id",id).eq("is_checked",true);if(error)throw error}checked.forEach(i=>{i.is_checked=false;i.updated_at=nowIso()});if(!isSupabaseConfigured)saveLocal();renderActiveList();showToast("All checks removed")}catch(e){handleError(e)}}
-async function addItem(text,assignee){const list=activeList(),clean=text.trim();if(!list){showToast("Create a list first");return false}if(!clean){showToast("Enter an item first");$("#newItemText").focus();return false}try{let item;if(isSupabaseConfigured){const{data,error}=await supabaseClient.from("shared_list_items").insert({list_id:list.id,text:clean,assignee:assignee.trim(),is_checked:false,position:state.items.filter(i=>i.list_id===list.id).length}).select().single();if(error)throw error;item=data}else{item={id:uid(),list_id:list.id,text:clean,assignee:assignee.trim(),is_checked:false,position:state.items.filter(i=>i.list_id===list.id).length,created_at:nowIso(),updated_at:nowIso()};saveLocal()}state.items.push(item);list.updated_at=nowIso();if(!isSupabaseConfigured)saveLocal();renderActiveList();return true}catch(e){handleError(e);return false}}
-async function updateItem(id,changes){const item=state.items.find(x=>x.id===id);if(!item)return;const before={...item};Object.assign(item,changes,{updated_at:nowIso()});const list=state.lists.find(x=>x.id===item.list_id);if(list)list.updated_at=nowIso();try{if(isSupabaseConfigured){const{error}=await supabaseClient.from("shared_list_items").update({...changes,updated_at:item.updated_at}).eq("id",id);if(error)throw error}else saveLocal();renderActiveList()}catch(e){Object.assign(item,before);handleError(e)}}
-async function deleteItem(id){const item=state.items.find(x=>x.id===id);if(!item)return;const label=item.text?.trim()||"Untitled item";const ok=await openModal({title:"Delete this item?",message:`“${label}” will be permanently deleted.`,confirmText:"Delete",danger:true});if(!ok)return;try{if(isSupabaseConfigured){const{error}=await supabaseClient.from("shared_list_items").delete().eq("id",id);if(error)throw error}state.items=state.items.filter(x=>x.id!==id);if(!isSupabaseConfigured)saveLocal();renderActiveList();showToast("Item deleted")}catch(e){handleError(e)}}
-async function persistListOrder(ids){const previous=state.lists.map(x=>({id:x.id,position:x.position}));ids.forEach((id,position)=>{const list=state.lists.find(x=>x.id===id);if(list)list.position=position});try{if(isSupabaseConfigured){const results=await Promise.all(ids.map((id,position)=>supabaseClient.from("shared_lists").update({position,updated_at:nowIso()}).eq("id",id)));const failed=results.find(r=>r.error);if(failed)throw failed.error}else saveLocal();renderTabs();showToast("List order saved")}catch(e){previous.forEach(p=>{const list=state.lists.find(x=>x.id===p.id);if(list)list.position=p.position});renderTabs();handleError(e)}}
-async function persistItemOrder(ids){const list=activeList();if(!list)return;const previous=state.items.filter(x=>x.list_id===list.id).map(x=>({id:x.id,position:x.position}));ids.forEach((id,position)=>{const item=state.items.find(x=>x.id===id);if(item)item.position=position});try{if(isSupabaseConfigured){const results=await Promise.all(ids.map((id,position)=>supabaseClient.from("shared_list_items").update({position,updated_at:nowIso()}).eq("id",id)));const failed=results.find(r=>r.error);if(failed)throw failed.error}else saveLocal();renderActiveList();showToast("Item order saved")}catch(e){previous.forEach(p=>{const item=state.items.find(x=>x.id===p.id);if(item)item.position=p.position});renderActiveList();handleError(e)}}
-function handleError(e){console.error(e);showToast(e.message||"Something went wrong");setSyncStatus("error","Sync error")}
-const workspace=$("#workspace"),sidebarToggle=$("#sidebarToggle");let sidebarHidden=localStorage.getItem(`${localKey}-sidebar-hidden`)==="true";function applySidebarState(){workspace.classList.toggle("sidebar-hidden",sidebarHidden);sidebarToggle.textContent=sidebarHidden?"☰":"☰";sidebarToggle.title=sidebarHidden?"Show lists":"Hide lists";sidebarToggle.setAttribute("aria-label",sidebarToggle.title)}applySidebarState();sidebarToggle.onclick=()=>{sidebarHidden=!sidebarHidden;localStorage.setItem(`${localKey}-sidebar-hidden`,String(sidebarHidden));applySidebarState()};
-$("#addListButton").onclick=createList;listTitleInput.onchange=()=>{const l=activeList();if(l)renameList(l.id,listTitleInput.value)};$("#newItemForm").onsubmit=async e=>{e.preventDefault();const text=$("#newItemText"),assignee=$("#newAssignee");const added=await addItem(text.value,assignee.value);if(added){text.value="";assignee.value="";text.focus()}};$("#statusFilter").onchange=e=>{filters.status=e.target.value;renderActiveList()};$("#assigneeFilter").onchange=e=>{filters.assignee=e.target.value;renderActiveList()};
-$("#listMenu").onclick=async e=>{const action=e.target.dataset.action,id=menuListId;if(!action||!id)return;closeListMenu();const list=state.lists.find(x=>x.id===id);if(action==="rename"&&list){const name=await openModal({title:"Rename list",inputValue:list.name,confirmText:"Save"});if(name)renameList(id,name)}if(action==="duplicate")duplicateList(id);if(action==="export-text")downloadListAsText(id);if(action==="clear")clearChecks(id);if(action==="delete")deleteList(id)};document.addEventListener("click",e=>{if(!e.target.closest("#listMenu")&&!e.target.closest(".tab-menu"))closeListMenu()});window.addEventListener("resize",closeListMenu);
-$("#signInTab").onclick=()=>switchAuthMode("signin");
-$("#signUpTab").onclick=()=>switchAuthMode("signup");
-$("#emailAuthForm").onsubmit=async e=>{e.preventDefault();if(!isSupabaseConfigured){setAuthMessage("Add your Supabase URL and publishable key in config.js.",true);return}const email=$("#authEmail").value.trim(),password=$("#authPassword").value;if(password.length<8){setAuthMessage("Password must contain at least 8 characters.",true);return}const submit=$("#emailAuthSubmit");submit.disabled=true;try{if(authMode==="signup"){setAuthMessage("Creating your account…");const data=await createAccount(email,password);if(data.session){setAuthMessage("Account created and signed in.")}else{setAuthMessage("Account created. Check your email and click the confirmation link before signing in.")}}else{setAuthMessage("Signing in…");await signInWithEmail(email,password)}}catch(err){setAuthMessage(err.message||"Authentication failed.",true)}finally{submit.disabled=false}};
-$("#forgotPasswordButton").onclick=async()=>{const email=$("#authEmail").value.trim();if(!email){setAuthMessage("Enter your email address first.",true);$("#authEmail").focus();return}try{setAuthMessage("Sending password reset email…");await sendPasswordReset(email);setAuthMessage("Password reset email sent. Check your inbox.")}catch(err){setAuthMessage(err.message||"Could not send the reset email.",true)}};
-$("#resetPasswordPanel").onsubmit=async e=>{e.preventDefault();const password=$("#newPassword").value,confirm=$("#confirmNewPassword").value;if(password.length<8){setAuthMessage("Password must contain at least 8 characters.",true);return}if(password!==confirm){setAuthMessage("The passwords do not match.",true);return}try{setAuthMessage("Updating password…");await setNewPassword(password);setAuthMessage("Password updated successfully. Opening your lists…");$("#resetPasswordPanel").hidden=true;$("#normalAuthPanel").hidden=false;await initialize()}catch(err){setAuthMessage(err.message||"Could not update your password.",true)}};
-$("#googleSignIn").onclick=()=>signInWithProvider("google").catch(err=>{setAuthMessage(err.message||"Google sign-in could not be started.",true);$("#googleSignIn").disabled=false});
-$("#signOutButton").onclick=async()=>{await supabaseClient.auth.signOut();currentUser=null;state={lists:[],items:[],activeListId:null};render();showAuthGate("You have been signed out.");setSyncStatus("","Sign in required")};
-$("#shareListButton").onclick=()=>shareActiveList().catch(handleError);
-supabaseClient?.auth.onAuthStateChange((event,session)=>{if(event==="PASSWORD_RECOVERY"){currentUser=session?.user||null;showPasswordRecovery();return}if(event==="SIGNED_IN"&&session){currentUser=session.user;initialize()}if(event==="SIGNED_OUT"){if(realtimeChannel){supabaseClient.removeChannel(realtimeChannel);realtimeChannel=null}currentUser=null;showAuthGate()}});
-switchAuthMode("signin");
-initialize();
-</script>
-</body></html>
+    <section id="cloudSetupNotice" class="card" style="margin-bottom:18px; border-color:#fed7aa; background:#fff7ed;">
+      <h2 style="margin-bottom:8px;">Cloud connection setup</h2>
+      <p class="helper" style="margin-top:0;">
+        Enter your Supabase project URL and anonymous key near the top of this HTML file.
+        Once configured, all entries sync across phone and PC. No browser storage is used.
+      </p>
+    </section>
+
+    <section class="dashboard-grid" aria-label="Daily dashboard">
+      <article class="card">
+        <h2>Daily Check-In</h2>
+
+        <div class="form-grid">
+          <div class="field full">
+            <label for="entryDate">Date</label>
+            <input id="entryDate" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="intake">Calorie intake (kcal)</label>
+            <input id="intake" type="number" min="0" step="1" placeholder="e.g. 2100" />
+          </div>
+
+          <div class="field">
+            <label for="burn">Garmin burn (kcal)</label>
+            <input id="burn" type="number" min="0" step="1" placeholder="e.g. 3050" />
+          </div>
+
+          <div class="field full">
+            <label for="weight">Body weight (kg)</label>
+            <input id="weight" type="number" min="20" max="400" step="0.1" placeholder="e.g. 102.4" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="saveButton" class="button primary" type="button">Complete Check-In</button>
+          <button id="clearFormButton" class="button secondary" type="button">Clear Form</button>
+        </div>
+
+        <p class="helper">
+          Saving the same date again updates that day's entry in the cloud.
+        </p>
+        <div id="message" class="message" aria-live="polite"></div>
+      </article>
+
+      <article class="card">
+        <h2>Today's Results</h2>
+
+        <div class="summary-grid">
+          <div class="metric">
+            <div class="metric-label">Calorie intake</div>
+            <div id="summaryIntake" class="metric-value">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Garmin burn</div>
+            <div id="summaryBurn" class="metric-value">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Net deficit</div>
+            <div id="summaryDeficit" class="metric-value">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Body weight</div>
+            <div id="summaryWeight" class="metric-value">—</div>
+          </div>
+        </div>
+
+        <div id="status" class="status">No check-in saved for today</div>
+        <p class="helper">Daily deficit target: 850 kcal.</p>
+      </article>
+    </section>
+
+    <section class="charts" aria-label="Historical charts">
+      <article class="chart-card">
+        <div class="chart-heading">
+          <div>
+            <h2>Deficit history</h2>
+            <p>Daily net calorie deficit over time.</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item" style="color: var(--purple)">
+              <span class="legend-line"></span> Deficit
+            </span>
+            <span class="legend-item" style="color: var(--target)">
+              <span class="legend-line dashed"></span> 850 kcal target
+            </span>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="deficitChart" aria-label="Deficit history line graph"></canvas>
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <div class="chart-heading">
+          <div>
+            <h2>Calorie history</h2>
+            <p>Intake and Garmin burn on the same calorie axis.</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item" style="color: var(--accent)">
+              <span class="legend-line"></span> Intake
+            </span>
+            <span class="legend-item" style="color: var(--good)">
+              <span class="legend-line"></span> Garmin burn
+            </span>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="calorieChart" aria-label="Intake and Garmin burn history line graph"></canvas>
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <div class="chart-heading">
+          <div>
+            <h2>Body weight history</h2>
+            <p>Body weight in kilograms over time.</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item" style="color: var(--teal)">
+              <span class="legend-line"></span> Weight
+            </span>
+            <span class="legend-item" style="color: var(--target)">
+              <span class="legend-line dashed"></span> 97 kg goal
+            </span>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="weightChart" aria-label="Body weight history line graph"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section class="card history-card">
+      <div class="chart-heading">
+        <div>
+          <h2>Check-In History</h2>
+          <p>All saved values, ordered from newest to oldest.</p>
+        </div>
+        <button id="deleteAllButton" class="button danger" type="button">Delete All Data</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Intake</th>
+              <th>Burn</th>
+              <th>Deficit</th>
+              <th>Weight</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+        <div id="emptyHistory" class="empty">No check-ins yet.</div>
+      </div>
+    </section>
+  </main>
+
+
+  <dialog id="confirmDialog" class="confirm-dialog" aria-labelledby="confirmDialogTitle">
+    <div class="dialog-content">
+      <div id="confirmDialogIcon" class="dialog-icon" aria-hidden="true">!</div>
+      <h2 id="confirmDialogTitle" class="dialog-title">Please confirm</h2>
+      <p id="confirmDialogMessage" class="dialog-message"></p>
+      <div id="confirmDialogDetails" class="dialog-details" hidden></div>
+      <div class="dialog-actions">
+        <button id="confirmDialogCancel" class="button secondary" type="button">Cancel</button>
+        <button id="confirmDialogConfirm" class="button danger" type="button">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+
+    (() => {
+      "use strict";
+
+      /*
+        ONE-TIME SETUP:
+        1. Create a Supabase project.
+        2. Run the SQL shown in the setup file provided with this HTML.
+        3. Replace the two values below.
+      */
+      const SUPABASE_URL = "https://ozekbxclcfnpgpqipuhi.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96ZWtieGNsY2ZucGdwcWlwdWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NDM1OTIsImV4cCI6MjEwMDQxOTU5Mn0.X8vLnJ9o1Cef5NEHqacF1EBc7RorV_1wMGxNnnJs0Q4";
+
+      const DEFICIT_TARGET = 850;
+      const WEIGHT_GOAL = 97;
+      const configured =
+        !SUPABASE_URL.startsWith("YOUR_") &&
+        !SUPABASE_ANON_KEY.startsWith("YOUR_");
+
+      const supabase = configured
+        ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
+
+      const setupNotice = document.getElementById("cloudSetupNotice");
+      setupNotice.hidden = configured;
+
+      const dateInput = document.getElementById("entryDate");
+      const intakeInput = document.getElementById("intake");
+      const burnInput = document.getElementById("burn");
+      const weightInput = document.getElementById("weight");
+      const message = document.getElementById("message");
+
+      const confirmDialog = document.getElementById("confirmDialog");
+      const confirmDialogIcon = document.getElementById("confirmDialogIcon");
+      const confirmDialogTitle = document.getElementById("confirmDialogTitle");
+      const confirmDialogMessage = document.getElementById("confirmDialogMessage");
+      const confirmDialogDetails = document.getElementById("confirmDialogDetails");
+      const confirmDialogCancel = document.getElementById("confirmDialogCancel");
+      const confirmDialogConfirm = document.getElementById("confirmDialogConfirm");
+
+      const todayISO = new Date().toLocaleDateString("en-CA");
+      dateInput.value = todayISO;
+
+      let entries = [];
+
+      function formatDate(isoDate) {
+        const date = new Date(`${isoDate}T12:00:00`);
+        return new Intl.DateTimeFormat(undefined, {
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        }).format(date);
+      }
+
+      function shortDate(isoDate) {
+        const date = new Date(`${isoDate}T12:00:00`);
+        return new Intl.DateTimeFormat(undefined, {
+          day: "2-digit",
+          month: "short"
+        }).format(date);
+      }
+
+      function formatNumber(value, digits = 0) {
+        return Number(value).toLocaleString(undefined, {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        });
+      }
+
+      function setMessage(text, isError = false) {
+        message.textContent = text;
+        message.style.color = isError ? "var(--bad)" : "var(--good)";
+        window.clearTimeout(setMessage.timeout);
+        setMessage.timeout = window.setTimeout(() => {
+          message.textContent = "";
+        }, 4000);
+      }
+
+
+      function showConfirmDialog({
+        title,
+        message,
+        details = "",
+        confirmText = "Confirm",
+        danger = true
+      }) {
+        return new Promise(resolve => {
+          // Fallback for very old browsers.
+          if (!confirmDialog || typeof confirmDialog.showModal !== "function") {
+            const fallbackText = [title, message, details].filter(Boolean).join("\n\n");
+            resolve(window.confirm(fallbackText));
+            return;
+          }
+
+          confirmDialogTitle.textContent = title;
+          confirmDialogMessage.textContent = message;
+          confirmDialogConfirm.textContent = confirmText;
+          confirmDialogDetails.textContent = details;
+          confirmDialogDetails.hidden = !details;
+
+          confirmDialogIcon.classList.toggle("warning", !danger);
+          confirmDialogConfirm.classList.toggle("danger", danger);
+          confirmDialogConfirm.classList.toggle("primary", !danger);
+
+          let settled = false;
+
+          const finish = result => {
+            if (settled) return;
+            settled = true;
+            confirmDialogCancel.removeEventListener("click", onCancel);
+            confirmDialogConfirm.removeEventListener("click", onConfirm);
+            confirmDialog.removeEventListener("cancel", onNativeCancel);
+            confirmDialog.removeEventListener("click", onBackdropClick);
+            if (confirmDialog.open) confirmDialog.close();
+            resolve(result);
+          };
+
+          const onCancel = () => finish(false);
+          const onConfirm = () => finish(true);
+          const onNativeCancel = event => {
+            event.preventDefault();
+            finish(false);
+          };
+          const onBackdropClick = event => {
+            if (event.target === confirmDialog) finish(false);
+          };
+
+          confirmDialogCancel.addEventListener("click", onCancel);
+          confirmDialogConfirm.addEventListener("click", onConfirm);
+          confirmDialog.addEventListener("cancel", onNativeCancel);
+          confirmDialog.addEventListener("click", onBackdropClick);
+
+          confirmDialog.showModal();
+          confirmDialogCancel.focus();
+        });
+      }
+
+      function clearForm(keepDate = true) {
+        intakeInput.value = "";
+        burnInput.value = "";
+        weightInput.value = "";
+        if (!keepDate) dateInput.value = todayISO;
+      }
+
+      async function ensureJuly23Entry() {
+        if (!supabase) return;
+
+        const july23 = {
+          entry_date: "2026-07-23",
+          intake: 2000,
+          burn: 3800,
+          deficit: 1800,
+          weight: null
+        };
+
+        const { error } = await supabase
+          .from("checkins")
+          .upsert(july23, { onConflict: "entry_date", ignoreDuplicates: true });
+
+        if (error) {
+          console.error("Could not add July 23 entry:", error.message);
+        }
+      }
+
+      async function loadEntries() {
+        if (!supabase) {
+          entries = [{
+            id: "preview-july-23",
+            date: "2026-07-23",
+            intake: 2000,
+            burn: 3800,
+            deficit: 1800,
+            weight: null,
+            preview: true
+          }];
+          renderAll();
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("checkins")
+          .select("*")
+          .order("entry_date", { ascending: true });
+
+        if (error) {
+          setMessage(`Cloud load failed: ${error.message}`, true);
+          return;
+        }
+
+        entries = (data || []).map(row => ({
+          id: row.id,
+          date: row.entry_date,
+          intake: Number(row.intake),
+          burn: Number(row.burn),
+          deficit: Number(row.deficit),
+          weight: row.weight === null ? null : Number(row.weight)
+        }));
+
+        renderAll();
+      }
+
+      async function saveCheckIn() {
+        if (!supabase) {
+          setMessage("Add your Supabase URL and key to enable cloud saving.", true);
+          return;
+        }
+
+        const date = dateInput.value;
+        const intake = Number(intakeInput.value);
+        const burn = Number(burnInput.value);
+        const weight = weightInput.value === "" ? null : Number(weightInput.value);
+
+        if (!date) {
+          setMessage("Please select a date.", true);
+          return;
+        }
+
+        if (!Number.isFinite(intake) || intake < 0 ||
+            !Number.isFinite(burn) || burn < 0) {
+          setMessage("Enter valid intake and burn values.", true);
+          return;
+        }
+
+        if (weight !== null && (!Number.isFinite(weight) || weight <= 0)) {
+          setMessage("Enter a valid body weight or leave it empty.", true);
+          return;
+        }
+
+        const existingEntry = entries.find(entry => entry.date === date);
+        if (existingEntry) {
+          const newDeficit = Math.round(burn - intake);
+          const confirmed = await showConfirmDialog({
+            title: "Overwrite existing check-in?",
+            message:
+              `A check-in already exists for ${formatDate(date)}. ` +
+              "Saving will permanently replace the old values with the new values.",
+            details:
+              `OLD DATA\n` +
+              `Intake: ${formatNumber(existingEntry.intake)} kcal\n` +
+              `Garmin burn: ${formatNumber(existingEntry.burn)} kcal\n` +
+              `Deficit: ${formatNumber(existingEntry.deficit)} kcal\n` +
+              `Weight: ${existingEntry.weight === null ? "Not entered" : `${formatNumber(existingEntry.weight, 1)} kg`}\n\n` +
+              `NEW DATA\n` +
+              `Intake: ${formatNumber(Math.round(intake))} kcal\n` +
+              `Garmin burn: ${formatNumber(Math.round(burn))} kcal\n` +
+              `Deficit: ${formatNumber(newDeficit)} kcal\n` +
+              `Weight: ${weight === null ? "Not entered" : `${formatNumber(Math.round(weight * 10) / 10, 1)} kg`}`,
+            confirmText: "Overwrite data",
+            danger: false
+          });
+
+          if (!confirmed) {
+            setMessage("Overwrite cancelled.");
+            return;
+          }
+        }
+
+        const payload = {
+          entry_date: date,
+          intake: Math.round(intake),
+          burn: Math.round(burn),
+          deficit: Math.round(burn - intake),
+          weight: weight === null ? null : Math.round(weight * 10) / 10,
+          updated_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase
+          .from("checkins")
+          .upsert(payload, { onConflict: "entry_date" });
+
+        if (error) {
+          setMessage(`Cloud save failed: ${error.message}`, true);
+          return;
+        }
+
+        setMessage("Check-in saved to cloud.");
+        await loadEntries();
+      }
+
+      async function deleteEntry(id) {
+        if (!supabase || String(id).startsWith("preview")) return;
+
+        const entry = entries.find(item => String(item.id) === String(id));
+        if (!entry) {
+          setMessage("The selected entry could not be found.", true);
+          return;
+        }
+
+        const confirmed = await showConfirmDialog({
+          title: "Delete this check-in?",
+          message:
+            `Are you sure you want to permanently delete the check-in for ${formatDate(entry.date)}? ` +
+            "This action cannot be undone.",
+          details:
+            `Intake: ${formatNumber(entry.intake)} kcal\n` +
+            `Garmin burn: ${formatNumber(entry.burn)} kcal\n` +
+            `Deficit: ${formatNumber(entry.deficit)} kcal\n` +
+            `Weight: ${entry.weight === null ? "Not entered" : `${formatNumber(entry.weight, 1)} kg`}`,
+          confirmText: "Delete check-in",
+          danger: true
+        });
+
+        if (!confirmed) {
+          setMessage("Delete cancelled.");
+          return;
+        }
+
+        const { error } = await supabase
+          .from("checkins")
+          .delete()
+          .eq("id", id);
+
+        if (error) {
+          setMessage(`Delete failed: ${error.message}`, true);
+          return;
+        }
+
+        setMessage("Entry deleted.");
+        await loadEntries();
+      }
+
+      async function deleteAll() {
+        if (!supabase) {
+          setMessage("Cloud connection is not configured.", true);
+          return;
+        }
+
+        if (!entries.length) return;
+
+        const confirmed = await showConfirmDialog({
+          title: "Delete all BodyMassTracker data?",
+          message:
+            `You are about to permanently delete all ${entries.length} saved check-in(s) from the cloud database.`,
+          details:
+            "Every date, calorie entry, Garmin burn value, deficit and recorded weight will be removed.\n\n" +
+            "This action cannot be undone.",
+          confirmText: "Delete all data",
+          danger: true
+        });
+
+        if (!confirmed) {
+          setMessage("Delete all cancelled.");
+          return;
+        }
+
+        const { error } = await supabase
+          .from("checkins")
+          .delete()
+          .gte("entry_date", "1900-01-01");
+
+        if (error) {
+          setMessage(`Delete failed: ${error.message}`, true);
+          return;
+        }
+
+        setMessage("All cloud data deleted.");
+        await loadEntries();
+      }
+
+      function updateSummary() {
+        const todayEntry = entries.find(item => item.date === todayISO);
+
+        if (!todayEntry) {
+          document.getElementById("summaryIntake").textContent = "—";
+          document.getElementById("summaryBurn").textContent = "—";
+          document.getElementById("summaryDeficit").textContent = "—";
+          document.getElementById("summaryWeight").textContent = "—";
+
+          const status = document.getElementById("status");
+          status.textContent = "No check-in saved for today";
+          status.className = "status";
+          return;
+        }
+
+        document.getElementById("summaryIntake").textContent =
+          `${formatNumber(todayEntry.intake)} kcal`;
+        document.getElementById("summaryBurn").textContent =
+          `${formatNumber(todayEntry.burn)} kcal`;
+        document.getElementById("summaryDeficit").textContent =
+          `${formatNumber(todayEntry.deficit)} kcal`;
+        document.getElementById("summaryWeight").textContent =
+          todayEntry.weight === null ? "—" : `${formatNumber(todayEntry.weight, 1)} kg`;
+
+        const status = document.getElementById("status");
+        if (todayEntry.deficit >= DEFICIT_TARGET) {
+          status.textContent = "On target";
+          status.className = "status good";
+        } else if (todayEntry.deficit > 0) {
+          status.textContent = "Below target";
+          status.className = "status warn";
+        } else {
+          status.textContent = "Calorie surplus";
+          status.className = "status bad";
+        }
+      }
+
+      function updateHistory() {
+        const tbody = document.getElementById("historyBody");
+        const empty = document.getElementById("emptyHistory");
+        tbody.innerHTML = "";
+
+        if (!entries.length) {
+          empty.hidden = false;
+          return;
+        }
+
+        empty.hidden = true;
+
+        [...entries].reverse().forEach(entry => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDate(entry.date)}</td>
+            <td>${formatNumber(entry.intake)} kcal</td>
+            <td>${formatNumber(entry.burn)} kcal</td>
+            <td>${formatNumber(entry.deficit)} kcal</td>
+            <td>${entry.weight === null ? "—" : `${formatNumber(entry.weight, 1)} kg`}</td>
+            <td>${
+              entry.preview
+                ? "Preview"
+                : `<button class="delete-row" type="button" data-id="${entry.id}">Delete</button>`
+            }</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        tbody.querySelectorAll(".delete-row").forEach(button => {
+          button.addEventListener("click", () => deleteEntry(button.dataset.id));
+        });
+      }
+
+      function prepareCanvas(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.max(1, Math.round(rect.width * ratio));
+        canvas.height = Math.max(1, Math.round(rect.height * ratio));
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        return { ctx, width: rect.width, height: rect.height };
+      }
+
+      function drawEmpty(ctx, width, height, label) {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = "#64748b";
+        ctx.font = "14px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(label, width / 2, height / 2);
+      }
+
+      function createChartBase(canvas, data, options) {
+        const { ctx, width, height } = prepareCanvas(canvas);
+        ctx.clearRect(0, 0, width, height);
+
+        if (!data.length) {
+          drawEmpty(ctx, width, height, "No historical data yet");
+          return null;
+        }
+
+        const margin = { left: 58, right: 18, top: 18, bottom: 42 };
+        const plotWidth = Math.max(1, width - margin.left - margin.right);
+        const plotHeight = Math.max(1, height - margin.top - margin.bottom);
+        const min = options.min;
+        const max = options.max;
+        const range = Math.max(0.0001, max - min);
+
+        const xFor = index =>
+          data.length === 1
+            ? margin.left + plotWidth / 2
+            : margin.left + (index / (data.length - 1)) * plotWidth;
+
+        const yFor = value =>
+          margin.top + plotHeight - ((value - min) / range) * plotHeight;
+
+        ctx.strokeStyle = "#dbe3ef";
+        ctx.fillStyle = "#64748b";
+        ctx.lineWidth = 1;
+        ctx.font = "12px system-ui, sans-serif";
+
+        for (let i = 0; i <= 4; i++) {
+          const value = min + (range / 4) * i;
+          const y = yFor(value);
+          ctx.beginPath();
+          ctx.moveTo(margin.left, y);
+          ctx.lineTo(width - margin.right, y);
+          ctx.stroke();
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText(options.yFormatter(value), margin.left - 8, y);
+        }
+
+        const maxLabels = width < 500 ? 4 : 7;
+        const step = Math.max(1, Math.ceil(data.length / maxLabels));
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+
+        data.forEach((item, index) => {
+          if (index % step === 0 || index === data.length - 1) {
+            ctx.fillText(shortDate(item.date), xFor(index), height - margin.bottom + 12);
+          }
+        });
+
+        ctx.save();
+        ctx.translate(14, margin.top + plotHeight / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(options.yLabel, 0, 0);
+        ctx.restore();
+
+        return { ctx, width, margin, xFor, yFor };
+      }
+
+      function drawLine(base, data, valueAccessor, color) {
+        const values = data.map(valueAccessor);
+        const valid = values
+          .map((value, index) => Number.isFinite(value) ? index : -1)
+          .filter(index => index >= 0);
+
+        if (!valid.length) return;
+
+        const { ctx, xFor, yFor } = base;
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 3;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+
+        ctx.beginPath();
+        valid.forEach((index, pointIndex) => {
+          const x = xFor(index);
+          const y = yFor(values[index]);
+          if (pointIndex === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        valid.forEach(index => {
+          ctx.beginPath();
+          ctx.arc(xFor(index), yFor(values[index]), 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      function drawTargetLine(base, value, label, color) {
+        const { ctx, margin, width, yFor } = base;
+        const y = yFor(value);
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 6]);
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(width - margin.right, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = color;
+        ctx.font = "bold 11px system-ui, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(label, margin.left + 6, y - 5);
+      }
+
+      function drawDeficitChart() {
+        const canvas = document.getElementById("deficitChart");
+        if (!entries.length) {
+          const { ctx, width, height } = prepareCanvas(canvas);
+          drawEmpty(ctx, width, height, "No deficit history yet");
+          return;
+        }
+
+        const values = entries.map(item => item.deficit);
+        const min = Math.min(0, ...values);
+        const maxRaw = Math.max(DEFICIT_TARGET, ...values);
+        const max = maxRaw + Math.max(150, (maxRaw - min) * 0.12);
+
+        const base = createChartBase(canvas, entries, {
+          min,
+          max,
+          yLabel: "Deficit (kcal)",
+          yFormatter: value => Math.round(value).toLocaleString()
+        });
+
+        if (!base) return;
+        drawTargetLine(base, DEFICIT_TARGET, "850 kcal target", "#d97706");
+        drawLine(base, entries, item => item.deficit, "#7c3aed");
+      }
+
+      function drawCalorieChart() {
+        const canvas = document.getElementById("calorieChart");
+        if (!entries.length) {
+          const { ctx, width, height } = prepareCanvas(canvas);
+          drawEmpty(ctx, width, height, "No calorie history yet");
+          return;
+        }
+
+        const values = entries.flatMap(item => [item.intake, item.burn]);
+        const maxRaw = Math.max(...values, 1000);
+        const max = maxRaw + Math.max(200, maxRaw * 0.08);
+
+        const base = createChartBase(canvas, entries, {
+          min: 0,
+          max,
+          yLabel: "Calories (kcal)",
+          yFormatter: value => Math.round(value).toLocaleString()
+        });
+
+        if (!base) return;
+        drawLine(base, entries, item => item.intake, "#2563eb");
+        drawLine(base, entries, item => item.burn, "#15803d");
+      }
+
+      function drawWeightChart() {
+        const weightedEntries = entries.filter(item => Number.isFinite(item.weight));
+        const canvas = document.getElementById("weightChart");
+
+        if (!weightedEntries.length) {
+          const { ctx, width, height } = prepareCanvas(canvas);
+          drawEmpty(ctx, width, height, "No weight history yet");
+          return;
+        }
+
+        const values = weightedEntries.map(item => item.weight);
+        const minRaw = Math.min(WEIGHT_GOAL, ...values);
+        const maxRaw = Math.max(WEIGHT_GOAL, ...values);
+        const spread = Math.max(2, maxRaw - minRaw);
+        const min = Math.floor((minRaw - Math.max(0.8, spread * 0.15)) * 2) / 2;
+        const max = Math.ceil((maxRaw + Math.max(0.8, spread * 0.15)) * 2) / 2;
+
+        const base = createChartBase(canvas, weightedEntries, {
+          min,
+          max,
+          yLabel: "Body weight (kg)",
+          yFormatter: value => value.toFixed(1)
+        });
+
+        if (!base) return;
+        drawTargetLine(base, WEIGHT_GOAL, "97 kg goal", "#d97706");
+        drawLine(base, weightedEntries, item => item.weight, "#0f766e");
+      }
+
+      function renderAll() {
+        updateSummary();
+        updateHistory();
+        drawDeficitChart();
+        drawCalorieChart();
+        drawWeightChart();
+      }
+
+      document.getElementById("saveButton").addEventListener("click", saveCheckIn);
+      document.getElementById("clearFormButton").addEventListener("click", () => clearForm(true));
+      document.getElementById("deleteAllButton").addEventListener("click", deleteAll);
+
+      [intakeInput, burnInput, weightInput].forEach(input => {
+        input.addEventListener("keydown", event => {
+          if (event.key === "Enter") saveCheckIn();
+        });
+      });
+
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(() => {
+          drawDeficitChart();
+          drawCalorieChart();
+          drawWeightChart();
+        }, 120);
+      });
+
+      async function initialize() {
+        if (configured) {
+          await ensureJuly23Entry();
+        }
+        await loadEntries();
+      }
+
+      initialize();
+    })();
+  </script>
+</body>
+</html>
