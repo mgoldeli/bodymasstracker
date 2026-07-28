@@ -546,7 +546,7 @@
               <span class="legend-line dashed"></span> 850 kcal target
             </span>
             <span class="legend-item" style="color:#f59e0b">
-              <span class="legend-line dashed"></span> 500 kcal deficit
+              <span class="legend-line dashed"></span> 500 kcal
             </span>
             <span class="legend-item" style="color:#5f6368">
               <span class="legend-line dashed"></span> 0 kcal
@@ -1227,7 +1227,7 @@
 
         if (!base) return;
         drawTargetLine(base, 0, "0 kcal", "#5f6368");
-        drawTargetLine(base, 500, "500 kcal deficit", "#f59e0b");
+        drawTargetLine(base, 500, "500 kcal", "#f59e0b");
         drawTargetLine(base, DEFICIT_TARGET, "850 kcal target", "#d97706");
         drawLine(base, entries, item => item.deficit, "#7c3aed");
       }
