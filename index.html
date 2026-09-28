@@ -614,6 +614,85 @@
       .dialog-actions { flex-direction: column-reverse; }
       .dialog-actions .button { width: 100%; }
     }
+    /* Compact phone layout with controls large enough for touch. */
+    [hidden] { display: none !important; }
+    body { padding: max(10px, env(safe-area-inset-top)) 0 max(24px, env(safe-area-inset-bottom)); }
+    .app { width: min(100% - 20px, 1020px); padding-top: 0; }
+    .topbar { gap: 8px; margin-bottom: 12px; }
+    .app-icon { width: 52px; height: 52px; border-radius: 12px; }
+    .section-switcher { padding: 3px; gap: 4px; border-radius: 12px; }
+    .section-toggle { height: 40px; font-size: .9rem; }
+    .dashboard-grid, .charts { gap: 10px; }
+    .card, .chart-card { padding: 14px; border-radius: 14px; }
+    .card h2, .chart-card h2 { font-size: 1rem; margin-bottom: 10px; }
+    .form-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .field { gap: 4px; min-width: 0; }
+    .field label { font-size: .67rem; letter-spacing: .025em; }
+    .field input { min-height: 42px; padding: 8px 10px; border-radius: 9px; min-width: 0; }
+    .button { min-height: 44px; padding: 0 12px; font-size: .85rem; border-radius: 10px; }
+    .button:disabled { opacity: .65; cursor: wait; }
+    .actions { gap: 8px; margin-top: 10px; }
+    .actions .button { width: auto; }
+    .helper { margin-top: 8px; font-size: .75rem; line-height: 1.4; }
+    .message { min-height: 0; margin-top: 8px; font-size: .78rem; }
+    .message:empty { display: none; }
+    .summary-grid { gap: 6px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metric { padding: 10px; border-radius: 10px; }
+    .metric-label { font-size: .72rem; }
+    .metric-value { margin-top: 3px; font-size: 1.2rem; }
+    .status { margin-top: 10px; padding: 6px 9px; font-size: .78rem; }
+    .charts, .history-card, .gym-chart-card { margin-top: 10px; }
+    .chart-heading { gap: 6px; margin-bottom: 8px; }
+    .chart-heading h2 { margin-bottom: 0; }
+    .chart-heading p { margin-top: 3px; font-size: .75rem; }
+    .legend { font-size: .7rem; gap: 6px 10px; }
+    .canvas-wrap { height: 210px; }
+    .history-card > summary { font-size: .95rem; min-height: 28px; }
+    .gym-toolbar { gap: 8px; margin-bottom: 8px; flex-direction: row; align-items: flex-start; }
+    .gym-title-group h2 { font-size: 1rem; }
+    .gym-title-group p { font-size: .75rem; line-height: 1.4; margin-top: 4px; }
+    .gym-controls { flex-shrink: 0; }
+    .gym-table-wrap { margin-top: 8px; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+    .gym-table { min-width: 100%; table-layout: fixed; }
+    .gym-table th, .gym-table td { padding: 6px; }
+    .gym-table th:first-child { width: 190px; }
+    .gym-table th:not(:first-child) { width: 174px; }
+    .gym-table th:first-child, .gym-table td:first-child { position: sticky; left: 0; z-index: 1; background: #fff; border-right: 1px solid var(--border); }
+    .gym-table th:first-child { background: #f8fafc; z-index: 2; }
+    .gym-table .selected td:first-child { background: #eff6ff; }
+    .gym-cell input, .workout-date { min-width: 0; width: 100%; min-height: 44px; padding: 7px; font: inherit; font-size: 16px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); }
+    .workout-date { display: block; max-width: 100%; }
+    .exercise-cell { white-space: normal; }
+    .exercise-cell > .drag-handle { float: left; }
+    .exercise-fields { margin-left: 38px; min-width: 0; }
+    .text-button { min-height: 44px; padding: 6px 8px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .75rem; cursor: pointer; }
+    .exercise-fields .text-button, .gym-table th .text-button { display: block; text-align: left; padding-left: 0; }
+    .drag-handle { width: 36px; min-height: 48px; border: 0; border-radius: 8px; background: #edf2f8; color: #64748b; font-size: 26px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    .dragging { opacity: .5; }
+    .drop-before td { box-shadow: inset 0 3px var(--accent); }
+    .drop-after td { box-shadow: inset 0 -3px var(--accent); }
+    .set-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .set-fields label { min-width: 0; font-size: .7rem; color: var(--muted); }
+    .set-fields input { display: block; margin-top: 4px; }
+    input::placeholder { color: #94a3b8; opacity: 1; }
+    button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    @media (max-width: 760px) {
+      .canvas-wrap { height: 190px; }
+      .chart-heading { flex-direction: column; }
+      .brand-group { width: auto; }
+      .gym-toolbar { flex-wrap: wrap; }
+    }
+    @media (max-width: 430px) {
+      .card, .chart-card { padding: 11px; }
+      .gym-title-group { flex: 1; min-width: 170px; }
+      .gym-table th:first-child { width: 156px; }
+      .gym-table th:not(:first-child) { width: 164px; }
+      .gym-table th, .gym-table td { padding: 5px; }
+      .gym-controls { flex-direction: row; }
+      .metric { padding: 8px; }
+      .metric-value { font-size: 1.1rem; }
+      .gym-actions { gap: 4px; }
+    }
   </style>
 </head>
 <body>
@@ -648,7 +727,7 @@
               <input id="burn" type="number" min="0" step="10" placeholder="e.g. 3100" />
             </div>
 
-            <div class="field full">
+            <div class="field">
               <label for="weight">Body weight (kg)</label>
               <input id="weight" type="number" min="20" max="400" step="0.1" placeholder="e.g. 102.4" />
             </div>
@@ -698,37 +777,26 @@
         <div class="gym-toolbar">
           <div class="gym-title-group">
             <h2>Gym program</h2>
-            <p>Add an exercise, then enter sets like 3x 8kg. Each next column appears when the previous column has an entry. Select a row to view its history.</p>
+            <p>Add exercises and dated workouts. Drag the handles to reorder rows.</p>
           </div>
 
           <div class="gym-controls">
-            <div class="field compact">
-              <label for="gymDate">Workout date</label>
-              <input id="gymDate" type="date" />
-            </div>
             <button id="saveGymDayButton" class="button primary" type="button">Save Day</button>
           </div>
         </div>
 
         <div class="gym-table-wrap">
-          <table class="gym-table">
-            <thead>
-              <tr>
-                <th>Exercise</th>
-                <th data-gym-day="Mon">Mon</th>
-                <th data-gym-day="Tue">Tue</th>
-                <th data-gym-day="Wed">Wed</th>
-                <th data-gym-day="Thu">Thu</th>
-                <th data-gym-day="Fri">Fri</th>
-                <th data-gym-day="Sat">Sat</th>
-                <th data-gym-day="Sun">Sun</th>
-              </tr>
-            </thead>
+          <table id="gymTable" class="gym-table">
+            <thead><tr id="gymTableHead"><th scope="col">Exercise</th></tr></thead>
             <tbody id="gymTableBody"></tbody>
           </table>
         </div>
-        <div class="actions"><button id="addExerciseButton" class="button secondary" type="button">Add exercise</button></div>
-        <p class="helper">Changes are stored on this device when you click Save Day. Saving the same date replaces that date’s entries.</p>
+        <p id="gymEmptyHint" class="helper">Add a workout day to choose a date and enter reps and kg.</p>
+        <div class="actions gym-actions">
+          <button id="addExerciseButton" class="button secondary" type="button">Add exercise</button>
+          <button id="addWorkoutDayButton" class="button secondary" type="button">Add workout day</button>
+          <button id="reloadGymButton" class="text-button" type="button">Reload cloud</button>
+        </div>
         <div id="gymMessage" class="message" role="status" aria-live="polite"></div>
       </article>
 
@@ -745,7 +813,7 @@
       </article>
     </section>
 
-    <section class="charts" aria-label="Historical charts">
+    <section class="charts tracker-detail" aria-label="Historical charts">
       <article class="chart-card">
         <div class="chart-heading">
           <div>
@@ -755,9 +823,6 @@
           <div class="legend">
             <span class="legend-item" style="color: var(--purple)">
               <span class="legend-line"></span> Deficit
-            </span>
-            <span class="legend-item" style="color:#d97706">
-              <span class="legend-line dashed"></span> 850 kcal target
             </span>
             <span class="legend-item" style="color:#f59e0b">
               <span class="legend-line dashed"></span> 500 kcal deficit
@@ -813,7 +878,7 @@
       </article>
     </section>
 
-    <details class="card history-card">
+    <details class="card history-card tracker-detail">
       <summary>Check-In History</summary>
       <div class="chart-heading">
         <div>
@@ -861,7 +926,7 @@
       "use strict";
 
       const SUPABASE_URL = "https://ozekbxclcfnpgpqipuhi.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96ZWtieGNsY2ZucGdwcWlwdWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NDM1OTIsImV4cCI6MjEwMDQxOTU5Mn0.X8vLnJ9o1Cef5NEHqacF1EBc7RorV_1wMGxNnnJs0Q4";
+      const SUPABASE_ANON_KEY = "sb_publishable_RRAAaBZgfLYmeHKtrOSw7g_RgFc5rFt";
       const DEFICIT_TARGET = 850;
       const WEIGHT_GOAL = 97;
       const configured = !SUPABASE_URL.startsWith("YOUR_") && !SUPABASE_ANON_KEY.startsWith("YOUR_");
@@ -1331,7 +1396,7 @@
         const points = data
           .map((item, index) => {
             const value = valueAccessor(item);
-            if (!Number.isFinite(value) || value === 0) return null;
+            if (!Number.isFinite(value)) return null;
             return { index, value };
           })
           .filter(Boolean);
@@ -1391,7 +1456,7 @@
 
         const values = entries.map(item => item.deficit);
         const min = Math.min(0, ...values);
-        const maxRaw = Math.max(DEFICIT_TARGET, ...values);
+        const maxRaw = Math.max(500, ...values);
         const max = maxRaw + Math.max(150, (maxRaw - min) * 0.12);
 
         const base = createChartBase(canvas, entries, {
@@ -1405,7 +1470,6 @@
         if (!base) return;
         drawTargetLine(base, 0, "0 kcal deficit", "#5f6368");
         drawTargetLine(base, 500, "500 kcal deficit", "#f59e0b");
-        drawTargetLine(base, DEFICIT_TARGET, "850 kcal target", "#d97706");
         drawLine(base, entries, item => item.deficit, "#7c3aed");
       }
 
@@ -1464,124 +1528,244 @@
         drawLine(base, weightedEntries, item => item.weight, "#0f766e");
       }
 
-      const GYM_PROGRAM_KEY = "bodymasstracker.gym-program.v1";
-      const GYM_HISTORY_KEY = "bodymasstracker.gym-history.v1";
-      const GYM_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const GYM_CACHE_KEY = "bodymasstracker.gym.v3";
       let gymProgram = [];
+      let gymDays = [];
       let gymHistory = [];
       let selectedExercise = null;
+      let gymRevision = null;
+      let gymDirty = false;
+      let gymBusy = false;
+      let gymEditVersion = 0;
+      let gymDrag = null;
 
-      const GYM_STATE_KEY = "bodymasstracker.gym-state.v2";
+      function blankExercise() {
+        return { id: crypto.randomUUID(), name: "", values: {} };
+      }
 
-      function buildDefaultGymProgram() {
-        return [{ id: crypto.randomUUID(), name: "", values: {} }];
+      function gymSnapshot() {
+        return { program: gymProgram, days: gymDays };
+      }
+
+      function cacheGym(pending = gymDirty) {
+        try {
+          localStorage.setItem(GYM_CACHE_KEY, JSON.stringify({ ...gymSnapshot(), history: gymHistory, revision: gymRevision, pending }));
+        } catch (error) {
+          // Cloud saving still works if this browser cannot cache data.
+        }
+      }
+
+      function setGymMessage(text, error = false) {
+        const element = document.getElementById("gymMessage");
+        element.textContent = text;
+        element.style.color = error ? "var(--bad)" : "var(--muted)";
+      }
+
+      function markGymDirty() {
+        gymDirty = true;
+        gymEditVersion++;
+        cacheGym();
+        setGymMessage("Unsaved changes. Tap Save Day to sync across devices.");
+      }
+
+      function historyFromGym(state) {
+        return state.program.flatMap(exercise => state.days.flatMap(day => {
+          const value = exercise.values[day.id];
+          if (!value || value.reps === "" || value.weight === "" || !day.date) return [];
+          return [{ exerciseId: exercise.id, date: day.date, weight: Number(value.weight), reps: Number(value.reps) }];
+        }));
       }
 
       function loadGymProgram() {
         try {
-          const state = JSON.parse(localStorage.getItem(GYM_STATE_KEY) || "null");
-          const legacy = JSON.parse(localStorage.getItem(GYM_PROGRAM_KEY) || "null");
-          gymProgram = state ? state.program : (Array.isArray(legacy) ? legacy : []);
-          // Old untouched starter rows are examples, not user entries.
-          if (!state && gymProgram.length === 5 && gymProgram.map(e => e.id).join() === "bench-press,squat,deadlift,overhead-press,rowing" && gymProgram.every(e => Object.values(e.values || {}).every(v => !v.trim()))) gymProgram = [];
-          gymHistory = state ? state.history : JSON.parse(localStorage.getItem(GYM_HISTORY_KEY) || "[]");
-          gymHistory = Array.isArray(gymHistory) ? gymHistory : [];
-          gymProgram = Array.isArray(gymProgram) ? gymProgram : [];
-          gymHistory.forEach(entry => {
-            entry.exerciseId ||= gymProgram.find(e => e.name === entry.exercise)?.id;
-          });
-          if (state?.date) document.getElementById("gymDate").value = state.date;
+          const cache = JSON.parse(localStorage.getItem(GYM_CACHE_KEY) || "null");
+          if (cache) {
+            gymProgram = cache.program;
+            gymDays = cache.days;
+            gymHistory = cache.history || [];
+            gymRevision = cache.revision ?? null;
+            gymDirty = Boolean(cache.pending);
+          } else {
+            // Preserve old saved entries; never silently upload a local migration.
+            const old = JSON.parse(localStorage.getItem("bodymasstracker.gym-state.v2") || "null");
+            const program = old?.program || JSON.parse(localStorage.getItem("bodymasstracker.gym-program.v1") || "[]");
+            const history = old?.history || JSON.parse(localStorage.getItem("bodymasstracker.gym-history.v1") || "[]");
+            gymProgram = program.map(e => ({ id: e.id || crypto.randomUUID(), name: e.name, values: {} }));
+            if (!old && !history.length && program.length === 5 && program.map(e => e.id).join() === "bench-press,squat,deadlift,overhead-press,rowing" && program.every(e => Object.values(e.values || {}).every(v => !v.trim()))) gymProgram = [];
+            history.forEach(entry => {
+              let exercise = gymProgram.find(e => e.id === entry.exerciseId || e.name === entry.exercise);
+              if (!exercise) { exercise = { ...blankExercise(), name: entry.exercise }; gymProgram.push(exercise); }
+              const legacyKey = `${entry.date}|${entry.day || ""}`;
+              let day = gymDays.find(d => d.legacyKey === legacyKey);
+              if (!day) { day = { id: crypto.randomUUID(), date: entry.date, legacyKey }; gymDays.push(day); }
+              exercise.values[day.id] = { reps: String(entry.reps || 1), weight: String(entry.weight) };
+            });
+            // Earlier versions could also save planner cells without history.
+            program.forEach(oldExercise => {
+              const exercise = gymProgram.find(e => e.id === oldExercise.id);
+              if (!exercise) return;
+              Object.entries(oldExercise.values || {}).forEach(([weekday, raw]) => {
+                const match = String(raw).trim().match(/^(?:(\d+(?:\.\d+)?)\s*x\s*)?(\d+(?:\.\d+)?)\s*kg$/i);
+                if (!match || history.some(e => (e.exerciseId === exercise.id || e.exercise === exercise.name) && e.day === weekday && (!old?.date || e.date === old.date))) return;
+                const legacyKey = `draft|${weekday}`;
+                let day = gymDays.find(d => d.legacyKey === legacyKey);
+                if (!day) { day = { id: crypto.randomUUID(), date: old?.date || "", legacyKey }; gymDays.push(day); }
+                exercise.values[day.id] = { reps: match[1] || "1", weight: match[2] };
+              });
+            });
+            gymHistory = historyFromGym(gymSnapshot());
+            gymDirty = gymProgram.some(e => e.name.trim()) || gymDays.length > 0;
+          }
         } catch (error) {
-          gymProgram = [];
-          gymHistory = [];
-          setGymMessage("Could not load saved gym data.", true);
+          setGymMessage("Could not read the local gym cache. Your cloud entries will be loaded when available.", true);
+          gymProgram = []; gymDays = []; gymHistory = [];
         }
-        if (!gymProgram.length) gymProgram = buildDefaultGymProgram();
+        if (!gymProgram.length && !gymDays.length) gymProgram = [blankExercise()];
         selectedExercise = gymProgram[0]?.id || null;
+        if (gymDirty) setGymMessage("Local changes ready. Tap Save Day to sync them.");
       }
 
-      function setGymMessage(message, error = false) {
-        const element = document.getElementById("gymMessage");
-        element.textContent = message;
-        element.style.color = error ? "var(--bad)" : "var(--muted)";
+      function cloudGymError(error) {
+        if (/api key|jwt/i.test(error.message || "")) return "Cloud connection needs an updated public API key. Changes are kept on this device until sync is available.";
+        if (error.code === "PGRST205" || /gym_state.*(exist|cache)/i.test(error.message || "")) return "Gym cloud storage needs setup. Changes are kept on this device until sync is available.";
+        return "Could not sync gym entries. Your changes are kept on this device. Check your connection and try Save Day again.";
       }
 
-      function updateGymColumns() {
-        let visible = true;
-        GYM_DAYS.forEach((day, index) => {
-          if (index) visible = visible && gymProgram.some(e => (e.values[GYM_DAYS[index - 1]] || "").trim());
-          // Keep existing later values reachable when an earlier cell is cleared.
-          const hasLaterData = gymProgram.some(e => GYM_DAYS.slice(index).some(d => (e.values[d] || "").trim()));
-          document.querySelectorAll(`[data-gym-day="${day}"]`).forEach(cell => cell.hidden = !visible && !hasLaterData);
-        });
+      async function fetchGymCloud() {
+        if (!supabase) throw new Error("Cloud is not configured");
+        const { data, error } = await supabase.from("gym_state").select("payload, revision").eq("id", "personal").single();
+        if (error) throw error;
+        return data;
       }
 
-      function parseGymCell(value) {
-        const cleaned = String(value || "").trim();
-        if (!cleaned) return null;
-
-        const match = cleaned.match(/^(\d+(?:\.\d+)?)\s*(?:x|X)\s*(\d+(?:\.\d+)?)\s*kg$/i);
-        if (match) {
-          return { weight: Number(match[2]), reps: Number(match[1]) };
+      async function loadGymCloud(force = false) {
+        if (gymBusy || gymDrag || (!force && gymDirty)) return;
+        gymBusy = true;
+        const editVersion = gymEditVersion;
+        try {
+          const data = await fetchGymCloud();
+          if (editVersion !== gymEditVersion) return;
+          if (!force && data.revision === gymRevision && !gymDirty) {
+            setGymMessage("Up to date across devices.");
+            return;
+          }
+          gymProgram = data.payload.program || [];
+          gymDays = data.payload.days || [];
+          gymHistory = historyFromGym(gymSnapshot());
+          gymRevision = data.revision;
+          gymDirty = false;
+          if (!gymProgram.length && !gymDays.length) gymProgram = [blankExercise()];
+          if (!gymProgram.some(e => e.id === selectedExercise)) selectedExercise = gymProgram[0]?.id || null;
+          cacheGym(false);
+          renderGymTable(); drawGymChart();
+          setGymMessage("Up to date across devices.");
+        } catch (error) {
+          setGymMessage(cloudGymError(error), true);
+        } finally {
+          gymBusy = false;
         }
-
-        const weightOnly = cleaned.match(/^(\d+(?:\.\d+)?)\s*kg$/i);
-        if (weightOnly) {
-          return { weight: Number(weightOnly[1]), reps: null };
-        }
-
-        return null;
       }
 
       function renderGymTable() {
+        const head = document.getElementById("gymTableHead");
+        head.replaceChildren();
+        const exerciseHeading = document.createElement("th");
+        exerciseHeading.scope = "col";
+        exerciseHeading.textContent = "Exercise";
+        head.append(exerciseHeading);
+        gymDays.forEach(day => {
+          const th = document.createElement("th");
+          th.scope = "col";
+          const date = document.createElement("input");
+          date.type = "date";
+          date.value = day.date;
+          date.className = "workout-date";
+          date.setAttribute("aria-label", "Workout date");
+          date.dataset.dayId = day.id;
+          date.addEventListener("change", () => { day.date = date.value; markGymDirty(); });
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "text-button";
+          remove.textContent = "Remove day";
+          remove.addEventListener("click", async () => {
+            if (gymProgram.some(e => { const v = e.values[day.id]; return v && (v.reps !== "" || v.weight !== ""); }) && !await showConfirmDialog({ title: "Remove workout day?", message: "This removes the entries in this column when you save.", confirmText: "Remove" })) return;
+            gymDays = gymDays.filter(d => d.id !== day.id);
+            gymProgram.forEach(e => delete e.values[day.id]);
+            markGymDirty(); renderGymTable();
+          });
+          th.append(date, remove);
+          head.append(th);
+        });
         const tbody = document.getElementById("gymTableBody");
         tbody.replaceChildren();
         gymProgram.forEach(exercise => {
-          exercise.values ||= {};
           const row = document.createElement("tr");
+          row.dataset.exerciseId = exercise.id;
           row.className = `exercise-row${exercise.id === selectedExercise ? " selected" : ""}`;
-          const nameCell = document.createElement("td");
-          nameCell.className = "gym-cell";
-          const actions = document.createElement("div");
-          actions.className = "exercise-actions";
+          const cell = document.createElement("td");
+          cell.className = "gym-cell exercise-cell";
+          const handle = document.createElement("button");
+          handle.type = "button";
+          handle.className = "drag-handle";
+          handle.textContent = "⠿";
+          handle.setAttribute("aria-label", `Reorder ${exercise.name || "exercise"}. Drag or use arrow keys.`);
+          handle.addEventListener("pointerdown", event => startGymDrag(event, exercise.id, row));
+          handle.addEventListener("keydown", event => {
+            if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
+            event.preventDefault();
+            const index = gymProgram.findIndex(e => e.id === exercise.id);
+            const next = index + (event.key === "ArrowUp" ? -1 : 1);
+            if (next < 0 || next >= gymProgram.length) return;
+            [gymProgram[index], gymProgram[next]] = [gymProgram[next], gymProgram[index]];
+            markGymDirty(); renderGymTable();
+            document.querySelectorAll(".drag-handle")[next].focus();
+            setGymMessage(`Moved ${exercise.name || "exercise"} to row ${next + 1}. Tap Save Day to sync.`);
+          });
+          const fields = document.createElement("div");
+          fields.className = "exercise-fields";
           const name = document.createElement("input");
           name.value = exercise.name;
-          name.placeholder = "Add exercise, e.g. Squat";
+          name.placeholder = "e.g. Squat";
           name.setAttribute("aria-label", "Exercise name");
-          name.addEventListener("input", () => {
-            exercise.name = name.value;
-            setGymMessage("Unsaved changes — click Save Day to store them.");
-            drawGymChart();
-          });
+          name.addEventListener("input", () => { exercise.name = name.value; markGymDirty(); drawGymChart(); });
           const remove = document.createElement("button");
           remove.type = "button";
-          remove.className = "delete-row";
+          remove.className = "text-button";
           remove.textContent = "Delete";
-          remove.addEventListener("click", () => {
+          remove.addEventListener("click", async () => {
+            if (Object.values(exercise.values).some(v => v.reps !== "" || v.weight !== "") && !await showConfirmDialog({ title: "Delete exercise?", message: "This removes the exercise and its workout entries when you save.", confirmText: "Delete" })) return;
             gymProgram = gymProgram.filter(e => e.id !== exercise.id);
             if (selectedExercise === exercise.id) selectedExercise = gymProgram[0]?.id || null;
-            renderGymTable();
-            drawGymChart();
-            setGymMessage("Exercise removed. Click Save Day to store the change.");
+            markGymDirty(); renderGymTable(); drawGymChart();
           });
-          actions.append(name, remove);
-          nameCell.append(actions);
-          row.append(nameCell);
-          GYM_DAYS.forEach(day => {
+          fields.append(name, remove);
+          cell.append(handle, fields);
+          row.append(cell);
+          gymDays.forEach(day => {
             const cell = document.createElement("td");
             cell.className = "gym-cell";
-            cell.dataset.gymDay = day;
-            const input = document.createElement("input");
-            input.value = exercise.values[day] || "";
-            input.placeholder = "e.g. 3x 8kg";
-            input.setAttribute("aria-label", `Workout entry for ${day}`);
-            input.addEventListener("input", () => {
-              exercise.values[day] = input.value;
-              updateGymColumns();
-              setGymMessage("Unsaved changes — click Save Day to store them.");
+            const pair = document.createElement("div");
+            pair.className = "set-fields";
+            const value = exercise.values[day.id] || { reps: "", weight: "" };
+            [["reps", "Reps", "8"], ["weight", "kg", "20"]].forEach(([key, title, placeholder]) => {
+              const label = document.createElement("label");
+              label.textContent = title;
+              const input = document.createElement("input");
+              input.type = "number";
+              input.inputMode = key === "reps" ? "numeric" : "decimal";
+              input.min = key === "reps" ? "1" : "0";
+              input.step = key === "reps" ? "1" : "0.1";
+              input.placeholder = placeholder;
+              input.value = value[key];
+              input.setAttribute("aria-label", `${title} for ${exercise.name || "exercise"}, ${day.date || "new workout"}`);
+              input.addEventListener("input", () => {
+                exercise.values[day.id] ||= { reps: "", weight: "" };
+                exercise.values[day.id][key] = input.value;
+                markGymDirty();
+              });
+              label.append(input); pair.append(label);
             });
-            cell.append(input);
-            row.append(cell);
+            cell.append(pair); row.append(cell);
           });
           const select = () => {
             selectedExercise = exercise.id;
@@ -1592,47 +1776,118 @@
           row.addEventListener("click", event => { if (event.target.tagName !== "BUTTON") select(); });
           tbody.append(row);
         });
-        updateGymColumns();
+        document.getElementById("gymTable").style.width = `${(window.innerWidth <= 430 ? 156 : 190) + gymDays.length * (window.innerWidth <= 430 ? 164 : 174)}px`;
+        document.getElementById("gymEmptyHint").hidden = gymDays.length > 0;
       }
 
-      function saveGymDay() {
-        const workoutDate = document.getElementById("gymDate").value;
-        if (!workoutDate) return setGymMessage("Please choose a workout date.", true);
-        const newEntries = [];
-        for (const exercise of gymProgram) {
-          for (const day of GYM_DAYS) {
-            const value = (exercise.values[day] || "").trim();
-            if (!value) continue;
-            const parsed = parseGymCell(value);
-            if (!exercise.name.trim() || !parsed) {
-              return setGymMessage(`Add an exercise name and a valid entry for ${day}, such as 3x 8kg. Nothing was saved.`, true);
-            }
-            newEntries.push({ date: workoutDate, exerciseId: exercise.id, exercise: exercise.name.trim(), day, raw: value, ...parsed });
+      function startGymDrag(event, id, row) {
+        if (event.button !== 0 || gymDrag) return;
+        event.preventDefault();
+        const handle = event.currentTarget;
+        handle.setPointerCapture(event.pointerId);
+        gymDrag = { id, targetId: id, after: false, y: event.clientY };
+        row.classList.add("dragging");
+        const highlight = () => {
+          const rows = [...document.querySelectorAll("#gymTableBody tr")];
+          rows.forEach(r => r.classList.remove("drop-before", "drop-after"));
+          const target = rows.find(r => { const rect = r.getBoundingClientRect(); return gymDrag.y >= rect.top && gymDrag.y <= rect.bottom; });
+          if (target) {
+            const rect = target.getBoundingClientRect();
+            gymDrag.targetId = target.dataset.exerciseId;
+            gymDrag.after = gymDrag.y > rect.top + rect.height / 2;
+            if (gymDrag.targetId !== id) target.classList.add(gymDrag.after ? "drop-after" : "drop-before");
+          }
+        };
+        const move = e => { gymDrag.y = e.clientY; highlight(); };
+        let frame;
+        const scroll = () => {
+          if (gymDrag.y < 90) window.scrollBy(0, -9);
+          if (gymDrag.y > window.innerHeight - 90) window.scrollBy(0, 9);
+          highlight();
+          frame = requestAnimationFrame(scroll);
+        };
+        const finish = e => {
+          cancelAnimationFrame(frame);
+          handle.removeEventListener("pointermove", move);
+          handle.removeEventListener("pointerup", finish);
+          handle.removeEventListener("pointercancel", finish);
+          handle.removeEventListener("lostpointercapture", finish);
+          const drag = gymDrag;
+          gymDrag = null;
+          if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
+          if (e.type === "pointerup" && drag.targetId !== id) {
+            const index = gymProgram.findIndex(e => e.id === id);
+            const [exercise] = gymProgram.splice(index, 1);
+            const targetIndex = gymProgram.findIndex(e => e.id === drag.targetId);
+            gymProgram.splice(targetIndex + (drag.after ? 1 : 0), 0, exercise);
+            markGymDirty();
+          }
+          renderGymTable();
+        };
+        handle.addEventListener("pointermove", move);
+        handle.addEventListener("pointerup", finish);
+        handle.addEventListener("pointercancel", finish);
+        handle.addEventListener("lostpointercapture", finish);
+        frame = requestAnimationFrame(scroll);
+      }
+
+      function validateGym(state) {
+        for (const day of state.days) {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(day.date) || !Number.isFinite(Date.parse(day.date))) return "Choose a date for each workout column.";
+        }
+        for (const exercise of state.program) {
+          for (const day of state.days) {
+            const value = exercise.values[day.id];
+            if (!value || (value.reps === "" && value.weight === "")) continue;
+            if (!exercise.name.trim()) return "Give each exercise with entries a name.";
+            if (value.reps === "" || !Number.isInteger(Number(value.reps)) || Number(value.reps) < 1) return `Enter whole repetitions of at least 1 for ${exercise.name}.`;
+            if (value.weight === "" || !Number.isFinite(Number(value.weight)) || Number(value.weight) < 0) return `Enter a weight of 0 kg or more for ${exercise.name}.`;
           }
         }
-        const program = gymProgram.filter(e => e.name.trim()).map(e => ({ ...e, name: e.name.trim() }));
-        const history = gymHistory.filter(e => e.date !== workoutDate).concat(newEntries);
-        try {
-          localStorage.setItem(GYM_STATE_KEY, JSON.stringify({ program, history, date: workoutDate }));
-        } catch (error) {
-          return setGymMessage("Could not save on this device. Your edits are still here; please try again.", true);
-        }
-        gymHistory = history;
-        drawGymChart();
-        setGymMessage(`Saved ${newEntries.length} entries for ${formatDate(workoutDate)} on this device.`);
+        return null;
       }
 
-      function getExerciseHistory(exerciseName) {
-        return [...gymHistory]
-          .filter(item => item.exerciseId === exerciseName)
-          .map(item => ({
-            date: item.date,
-            weight: Number(item.weight),
-            reps: Number(item.reps) || 1,
-            raw: item.raw,
-            day: item.day
-          }))
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
+      async function saveGymDay() {
+        if (gymBusy) return setGymMessage("Cloud sync is in progress. Please try again in a moment.");
+        const state = JSON.parse(JSON.stringify(gymSnapshot()));
+        const errorMessage = validateGym(state);
+        if (errorMessage) return setGymMessage(errorMessage, true);
+        state.program = state.program.filter(e => e.name.trim()).map(e => ({ ...e, name: e.name.trim() }));
+        const editVersion = gymEditVersion;
+        gymBusy = true;
+        const button = document.getElementById("saveGymDayButton");
+        button.disabled = true;
+        button.textContent = "Saving…";
+        try {
+          if (gymRevision === null) {
+            const existing = await fetchGymCloud();
+            if (existing.payload.program?.length || existing.payload.days?.length) {
+              return setGymMessage("Cloud entries already exist. Your local edits are kept. Tap Reload cloud to use the saved cloud version before editing.", true);
+            }
+            gymRevision = existing.revision;
+          }
+          const { data, error } = await supabase.from("gym_state")
+            .update({ payload: state, revision: gymRevision + 1 })
+            .eq("id", "personal").eq("revision", gymRevision).select("revision");
+          if (error) throw error;
+          if (!data?.length) return setGymMessage("Another device saved changes. Your edits are kept here. Tap Reload cloud to review the newest version before saving again.", true);
+          gymRevision = data[0].revision;
+          gymHistory = historyFromGym(state);
+          gymDirty = editVersion !== gymEditVersion;
+          cacheGym(); drawGymChart();
+          setGymMessage(gymDirty ? "Saved to cloud. Newer edits still need Save Day." : "Saved to cloud — available on your other devices.");
+        } catch (error) {
+          cacheGym();
+          setGymMessage(cloudGymError(error), true);
+        } finally {
+          gymBusy = false;
+          button.disabled = false;
+          button.textContent = "Save Day";
+        }
+      }
+
+      function getExerciseHistory(exerciseId) {
+        return gymHistory.filter(e => e.exerciseId === exerciseId).sort((a, b) => a.date.localeCompare(b.date));
       }
 
       function drawGymChart() {
@@ -1696,7 +1951,8 @@
         });
 
         localStorage.setItem("bodymasstracker.activeSection", sectionName);
-        requestAnimationFrame(drawGymChart);
+        document.querySelectorAll(".tracker-detail").forEach(element => element.hidden = sectionName !== "tracker");
+        requestAnimationFrame(() => { drawGymChart(); drawDeficitChart(); drawCalorieChart(); drawWeightChart(); });
       }
 
       function attachSectionNavigation() {
@@ -1728,11 +1984,30 @@
       });
 
       document.getElementById("addExerciseButton").addEventListener("click", () => {
-        gymProgram.push(...buildDefaultGymProgram());
+        gymProgram.push(blankExercise());
+        markGymDirty();
         renderGymTable();
         document.querySelector("#gymTableBody tr:last-child input").focus();
-        setGymMessage("Unsaved changes — click Save Day to store them.");
+
       });
+
+      document.getElementById("addWorkoutDayButton").addEventListener("click", () => {
+        const day = { id: crypto.randomUUID(), date: "" };
+        gymDays.push(day);
+        markGymDirty(); renderGymTable();
+        const input = document.querySelector(`[data-day-id="${day.id}"]`);
+        input.scrollIntoView({ block: "nearest", inline: "end", behavior: "smooth" });
+        input.focus({ preventScroll: true });
+      });
+      document.getElementById("reloadGymButton").addEventListener("click", async () => {
+        if (gymDirty && !await showConfirmDialog({ title: "Reload cloud entries?", message: "This replaces the unsaved gym changes on this device with the cloud version.", confirmText: "Reload" })) return;
+        await loadGymCloud(true);
+      });
+      window.addEventListener("focus", () => { loadGymCloud(); loadEntries(); });
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) { loadGymCloud(); loadEntries(); }
+      });
+      window.setInterval(() => { if (!document.hidden) loadGymCloud(); }, 30000);
 
       let resizeTimer;
       window.addEventListener("resize", () => {
@@ -1746,15 +2021,13 @@
       });
 
       async function initialize() {
-        if (configured) {
-          await ensureJuly23Entry();
-        }
-
         loadGymProgram();
-        document.getElementById("gymDate").value ||= new Date().toLocaleDateString("en-CA");
         renderGymTable();
         attachSectionNavigation();
-        await loadEntries();
+        await Promise.all([
+          (async () => { if (configured) await ensureJuly23Entry(); await loadEntries(); })(),
+          loadGymCloud()
+        ]);
         drawGymChart();
       }
 
