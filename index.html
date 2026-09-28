@@ -693,6 +693,33 @@
       .metric-value { font-size: 1.1rem; }
       .gym-actions { gap: 4px; }
     }
+    /* Native date picker over a constrained display avoids iOS intrinsic sizing. */
+    .date-control { position: relative; display: flex; align-items: center; width: 100%; min-width: 0; min-height: 42px; overflow: hidden; border: 1px solid var(--border); border-radius: 9px; background: white; }
+    .date-control > span { padding: 8px 10px; font-size: 16px; color: var(--text); white-space: nowrap; }
+    .date-control input[type="date"] { position: absolute; inset: 0; width: 100%; height: 100%; min-width: 0; max-width: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer; -webkit-appearance: none; appearance: none; }
+    .date-control:focus-within { outline: 2px solid rgba(37,99,235,.4); outline-offset: 1px; }
+    .gym-table { min-width: 0; }
+    .gym-table th, .gym-table td { padding: 4px; vertical-align: top; }
+    .gym-table th:first-child { width: 124px; }
+    .gym-table th:not(:first-child) { width: 96px; }
+    .gym-table th { vertical-align: middle; }
+    .exercise-fields { margin: 0; display: grid; gap: 4px; }
+    .gym-cell input, .gym-cell select { width: 100%; min-width: 0; height: 36px; min-height: 36px; padding: 4px; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text); font: inherit; font-size: 16px; }
+    .exercise-tools { display: grid; grid-template-columns: 28px minmax(0, 1fr) 28px; gap: 2px; align-items: center; height: 36px; }
+    .exercise-tools .plot-unit { padding: 2px; }
+    .exercise-tools .drag-handle { width: 28px; height: 36px; min-height: 36px; font-size: 22px; padding: 0; }
+    .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 36px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #b45353; cursor: pointer; }
+    .icon-button:active { background: #fee2e2; }
+    .day-heading { display: grid; grid-template-columns: minmax(0, 1fr) 24px; align-items: center; }
+    .day-heading .icon-button { width: 24px; height: 44px; }
+    .compact-date { min-height: 44px; border: 0; background: transparent; }
+    .compact-date > span { padding: 0; white-space: pre-line; font-size: 11px; line-height: 1.45; text-transform: none; letter-spacing: 0; }
+    .set-fields { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .set-fields label { display: grid; grid-template-columns: 25px minmax(0, 1fr); gap: 2px; align-items: center; height: 36px; font-size: 10px; }
+    .set-fields input, .set-fields select { margin: 0; }
+    .set-fields input { -moz-appearance: textfield; }
+    .set-fields input::-webkit-inner-spin-button, .set-fields input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .gym-cell select:focus { outline: 2px solid rgba(37,99,235,.18); border-color: var(--accent); }
   </style>
 </head>
 <body>
@@ -777,7 +804,7 @@
         <div class="gym-toolbar">
           <div class="gym-title-group">
             <h2>Gym program</h2>
-            <p>Add exercises and dated workouts. Drag the handles to reorder rows.</p>
+            <p>Add dated workouts. Drag to reorder; choose kg or Reps beside an exercise to plot.</p>
           </div>
 
           <div class="gym-controls">
@@ -939,6 +966,7 @@
       const message = document.getElementById("message");
       const todayISO = new Date().toLocaleDateString("en-CA");
       dateInput.value = todayISO;
+      enhanceDateInput(dateInput);
 
       const confirmDialog = document.getElementById("confirmDialog");
       const confirmDialogIcon = document.getElementById("confirmDialogIcon");
@@ -1036,7 +1064,7 @@
         intakeInput.value = "";
         burnInput.value = "";
         weightInput.value = "";
-        if (!keepDate) dateInput.value = todayISO;
+        if (!keepDate) { dateInput.value = todayISO; dateInput.dispatchEvent(new Event("change")); }
       }
 
       async function ensureJuly23Entry() {
@@ -1540,7 +1568,7 @@
       let gymDrag = null;
 
       function blankExercise() {
-        return { id: crypto.randomUUID(), name: "", values: {} };
+        return { id: crypto.randomUUID(), name: "", plotUnit: "kg", values: {} };
       }
 
       function gymSnapshot() {
@@ -1571,8 +1599,8 @@
       function historyFromGym(state) {
         return state.program.flatMap(exercise => state.days.flatMap(day => {
           const value = exercise.values[day.id];
-          if (!value || value.reps === "" || value.weight === "" || !day.date) return [];
-          return [{ exerciseId: exercise.id, date: day.date, weight: Number(value.weight), reps: Number(value.reps) }];
+          if (!value || value.reps === "" || !day.date) return [];
+          return [{ exerciseId: exercise.id, date: day.date, weight: value.weight === "" || value.weight == null ? null : Number(value.weight), reps: Number(value.reps) }];
         }));
       }
 
@@ -1666,6 +1694,33 @@
         }
       }
 
+      function enhanceDateInput(input, compact = false) {
+        const wrapper = document.createElement("div");
+        wrapper.className = `date-control${compact ? " compact-date" : ""}`;
+        const display = document.createElement("span");
+        display.setAttribute("aria-hidden", "true");
+        const update = () => {
+          if (!input.value) { display.textContent = compact ? "Set date" : "Choose date"; return; }
+          display.textContent = compact ? `${shortDate(input.value)}\n${input.value.slice(0, 4)}` : formatDate(input.value);
+        };
+        if (input.parentNode) input.replaceWith(wrapper);
+        wrapper.append(display, input);
+        input.addEventListener("input", update);
+        input.addEventListener("change", update);
+        update();
+        return wrapper;
+      }
+
+      function binButton(label) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "icon-button";
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
+        return button;
+      }
+
       function renderGymTable() {
         const head = document.getElementById("gymTableHead");
         head.replaceChildren();
@@ -1683,17 +1738,17 @@
           date.setAttribute("aria-label", "Workout date");
           date.dataset.dayId = day.id;
           date.addEventListener("change", () => { day.date = date.value; markGymDirty(); });
-          const remove = document.createElement("button");
-          remove.type = "button";
-          remove.className = "text-button";
-          remove.textContent = "Remove day";
+          const remove = binButton(`Delete workout day ${day.date || "without date"}`);
           remove.addEventListener("click", async () => {
             if (gymProgram.some(e => { const v = e.values[day.id]; return v && (v.reps !== "" || v.weight !== ""); }) && !await showConfirmDialog({ title: "Remove workout day?", message: "This removes the entries in this column when you save.", confirmText: "Remove" })) return;
             gymDays = gymDays.filter(d => d.id !== day.id);
             gymProgram.forEach(e => delete e.values[day.id]);
             markGymDirty(); renderGymTable();
           });
-          th.append(date, remove);
+          const heading = document.createElement("div");
+          heading.className = "day-heading";
+          heading.append(enhanceDateInput(date, true), remove);
+          th.append(heading);
           head.append(th);
         });
         const tbody = document.getElementById("gymTableBody");
@@ -1728,18 +1783,32 @@
           name.placeholder = "e.g. Squat";
           name.setAttribute("aria-label", "Exercise name");
           name.addEventListener("input", () => { exercise.name = name.value; markGymDirty(); drawGymChart(); });
-          const remove = document.createElement("button");
-          remove.type = "button";
-          remove.className = "text-button";
-          remove.textContent = "Delete";
+          const remove = binButton(`Delete ${exercise.name || "exercise"}`);
           remove.addEventListener("click", async () => {
             if (Object.values(exercise.values).some(v => v.reps !== "" || v.weight !== "") && !await showConfirmDialog({ title: "Delete exercise?", message: "This removes the exercise and its workout entries when you save.", confirmText: "Delete" })) return;
             gymProgram = gymProgram.filter(e => e.id !== exercise.id);
             if (selectedExercise === exercise.id) selectedExercise = gymProgram[0]?.id || null;
             markGymDirty(); renderGymTable(); drawGymChart();
           });
-          fields.append(name, remove);
-          cell.append(handle, fields);
+          const unit = document.createElement("select");
+          unit.className = "plot-unit";
+          unit.setAttribute("aria-label", `Graph unit for ${exercise.name || "exercise"}`);
+          unit.title = "Plot kg or repetitions";
+          [["kg", "kg"], ["reps", "Reps"]].forEach(([value, label]) => {
+            const option = document.createElement("option");
+            option.value = value; option.textContent = label; unit.append(option);
+          });
+          unit.value = exercise.plotUnit || "kg";
+          unit.addEventListener("change", () => {
+            exercise.plotUnit = unit.value;
+            selectedExercise = exercise.id;
+            markGymDirty(); drawGymChart();
+          });
+          const toolbar = document.createElement("div");
+          toolbar.className = "exercise-tools";
+          toolbar.append(handle, unit, remove);
+          fields.append(name, toolbar);
+          cell.append(fields);
           row.append(cell);
           gymDays.forEach(day => {
             const cell = document.createElement("td");
@@ -1750,15 +1819,27 @@
             [["reps", "Reps", "8"], ["weight", "kg", "20"]].forEach(([key, title, placeholder]) => {
               const label = document.createElement("label");
               label.textContent = title;
-              const input = document.createElement("input");
-              input.type = "number";
-              input.inputMode = key === "reps" ? "numeric" : "decimal";
-              input.min = key === "reps" ? "1" : "0";
-              input.step = key === "reps" ? "1" : "0.1";
-              input.placeholder = placeholder;
+              const input = document.createElement(key === "reps" ? "select" : "input");
+              if (key === "reps") {
+                const empty = document.createElement("option");
+                empty.value = ""; empty.textContent = "—"; input.append(empty);
+                const choices = Array.from({ length: 100 }, (_, index) => index + 1);
+                if (Number(value.reps) > 100) choices.push(Number(value.reps));
+                choices.forEach(reps => {
+                  const option = document.createElement("option");
+                  option.value = String(reps); option.textContent = String(reps); input.append(option);
+                });
+              } else {
+                input.type = "number";
+                input.inputMode = "decimal";
+                input.min = "0";
+                input.step = "0.1";
+                input.placeholder = "—";
+                input.title = "Weight in kg (optional for bodyweight exercises)";
+              }
               input.value = value[key];
               input.setAttribute("aria-label", `${title} for ${exercise.name || "exercise"}, ${day.date || "new workout"}`);
-              input.addEventListener("input", () => {
+              input.addEventListener(key === "reps" ? "change" : "input", () => {
                 exercise.values[day.id] ||= { reps: "", weight: "" };
                 exercise.values[day.id][key] = input.value;
                 markGymDirty();
@@ -1776,7 +1857,7 @@
           row.addEventListener("click", event => { if (event.target.tagName !== "BUTTON") select(); });
           tbody.append(row);
         });
-        document.getElementById("gymTable").style.width = `${(window.innerWidth <= 430 ? 156 : 190) + gymDays.length * (window.innerWidth <= 430 ? 164 : 174)}px`;
+        document.getElementById("gymTable").style.width = `${124 + gymDays.length * 96}px`;
         document.getElementById("gymEmptyHint").hidden = gymDays.length > 0;
       }
 
@@ -1841,7 +1922,7 @@
             if (!value || (value.reps === "" && value.weight === "")) continue;
             if (!exercise.name.trim()) return "Give each exercise with entries a name.";
             if (value.reps === "" || !Number.isInteger(Number(value.reps)) || Number(value.reps) < 1) return `Enter whole repetitions of at least 1 for ${exercise.name}.`;
-            if (value.weight === "" || !Number.isFinite(Number(value.weight)) || Number(value.weight) < 0) return `Enter a weight of 0 kg or more for ${exercise.name}.`;
+            if (value.weight !== "" && (!Number.isFinite(Number(value.weight)) || Number(value.weight) < 0)) return `Enter a weight of 0 kg or more for ${exercise.name}.`;
           }
         }
         return null;
@@ -1907,16 +1988,18 @@
           return;
         }
 
-        const data = getExerciseHistory(exercise.id);
+        const metric = exercise.plotUnit === "reps" ? "reps" : "weight";
+        const unitLabel = metric === "reps" ? "reps" : "kg";
+        const data = getExerciseHistory(exercise.id).filter(item => Number.isFinite(item[metric]));
         if (!data.length) {
           const { ctx, width, height } = prepareCanvas(canvas);
-          drawEmpty(ctx, width, height, "No saved workout data yet");
+          drawEmpty(ctx, width, height, `No saved ${unitLabel} entries yet`);
           title.textContent = `${exerciseName} progression`;
           sub.textContent = "Use the planner and save a workout date to build a chart.";
           return;
         }
 
-        const values = data.map(item => item.weight);
+        const values = data.map(item => item[metric]);
         const min = Math.min(...values);
         const max = Math.max(...values);
         const spread = Math.max(2, max - min);
@@ -1926,7 +2009,7 @@
         const base = createChartBase(canvas, data, {
           min: chartMin,
           max: chartMax,
-          yLabel: "Weight (kg)",
+          yLabel: metric === "reps" ? "Repetitions" : "Weight (kg)",
           tickStep: 1,
           yFormatter: value => Number(value).toFixed(0)
         });
@@ -1934,8 +2017,8 @@
         if (!base) return;
 
         title.textContent = `${exerciseName} progression`;
-        sub.textContent = `${data.length} logged set${data.length === 1 ? "" : "s"} for this exercise.`;
-        drawLine(base, data, item => item.weight, "#7c3aed");
+        sub.textContent = `${data.length} saved entries · ${unitLabel}. Choose the graph unit beside the exercise.`;
+        drawLine(base, data, item => item[metric], "#7c3aed");
       }
 
       function switchSection(sectionName) {

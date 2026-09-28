@@ -127,3 +127,36 @@ test('touch/pointer drag reorders on drop and cancellation preserves order', () 
     assert.equal(d.run('gymDirty'), !cancelled);
   }
 });
+test('reps-only entries and per-exercise graph preference persist across devices', async () => {
+  const cloud = emptyCloud(); const phone = device(cloud); await phone.run('loadGymCloud()'); addWorkout(phone);
+  phone.run(`gymProgram[0].plotUnit='reps'; gymProgram[0].values.day1.weight=''; markGymDirty();`);
+  await phone.run('saveGymDay()');
+  const pc = device(cloud); await pc.run('loadGymCloud()');
+  assert.equal(pc.run('gymProgram[0].plotUnit'), 'reps');
+  assert.equal(pc.run('gymHistory[0].reps'), 8);
+  assert.equal(pc.run('gymHistory[0].weight'), null);
+});
+test('graph uses selected metric and never treats missing weight as zero kg', () => {
+  const d = device(emptyCloud());
+  d.nodes.gymHistoryChart = {};
+  d.nodes.gymChartTitle = {};
+  d.nodes.gymChartSubtitle = {};
+  d.run(html.slice(html.indexOf('      function drawGymChart()'), html.indexOf('      function switchSection')));
+  d.run(`
+    function createChartBase(canvas, data, options) { globalThis.axis = options.yLabel; return {}; }
+    function drawLine(base, data, accessor) { globalThis.points = data.map(accessor); }
+    function prepareCanvas() { return {ctx:{},width:300,height:180}; }
+    function drawEmpty(ctx, width, height, label) { globalThis.emptyLabel = label; }
+    gymProgram=[{id:'a',name:'Any exercise',plotUnit:'reps',values:{}}];
+    selectedExercise='a';
+    gymHistory=[{exerciseId:'a',date:'2026-09-28',reps:12,weight:null}];
+    drawGymChart();
+  `);
+  assert.equal(d.run('axis'), 'Repetitions');
+  assert.equal(d.run('points.join()'), '12');
+  d.run(`gymProgram[0].plotUnit='kg'; drawGymChart();`);
+  assert.equal(d.run('emptyLabel'), 'No saved kg entries yet');
+  d.run(`gymHistory[0].weight=20; drawGymChart();`);
+  assert.equal(d.run('axis'), 'Weight (kg)');
+  assert.equal(d.run('points.join()'), '20');
+});
