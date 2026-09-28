@@ -323,6 +323,22 @@
       margin-top: 18px;
     }
 
+    .history-card > summary {
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .history-card[open] > summary {
+      margin-bottom: 18px;
+    }
+
+    .history-card > summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 6px;
+      border-radius: 4px;
+    }
+
     .table-wrap {
       overflow-x: auto;
     }
@@ -797,10 +813,10 @@
       </article>
     </section>
 
-    <section class="card history-card">
+    <details class="card history-card">
+      <summary>Check-In History</summary>
       <div class="chart-heading">
         <div>
-          <h2>Check-In History</h2>
           <p>All saved values, ordered from newest to oldest.</p>
         </div>
         <button id="deleteAllButton" class="button danger" type="button">Delete All Data</button>
@@ -822,7 +838,7 @@
         </table>
         <div id="emptyHistory" class="empty">No check-ins yet.</div>
       </div>
-    </section>
+    </details>
   </main>
 
   <dialog id="confirmDialog" class="confirm-dialog" aria-labelledby="confirmDialogTitle">
