@@ -2,17 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>BodyMassTracker Cloud</title>
   <link rel="apple-touch-icon" sizes="180x180" href="bodymasstracker-apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#101722" />
   <meta name="apple-mobile-web-app-title" content="BodyMassTracker" />
   <script>
     try {
       const savedTheme = localStorage.getItem("bodymasstracker.theme");
       document.documentElement.dataset.theme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     } catch { document.documentElement.dataset.theme = "light"; }
+    function syncBrowserTheme() {
+      const dark = document.documentElement.dataset.theme === "dark";
+      document.querySelector('meta[name="theme-color"]').content = dark ? "#101722" : "#eef4fb";
+      document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').content = dark ? "black-translucent" : "default";
+    }
+    syncBrowserTheme();
   </script>
   <style>
     :root {
@@ -2180,6 +2187,7 @@
 
       const themeToggle = document.getElementById("themeToggle");
       function updateThemeToggle() {
+        syncBrowserTheme();
         const dark = document.documentElement.dataset.theme === "dark";
         themeToggle.setAttribute("aria-pressed", String(dark));
         themeToggle.textContent = dark ? "Light mode" : "Dark mode";
