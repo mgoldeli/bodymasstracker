@@ -70,7 +70,7 @@ test('stale device cannot overwrite a newer cloud save', async () => {
   await second.run('saveGymDay()');
   assert.equal(cloud.row.payload.program[0].name, 'Squat');
   assert.equal(second.run('gymDirty'), true);
-  assert.match(second.nodes.gymMessage.textContent, /Another device/);
+  assert.match(second.nodes.gymMessage.textContent, /Cloud refreshed/);
 });
 test('incomplete sets, negative kg, fractional reps and missing dates block saving', async () => {
   const cloud = emptyCloud(); const d = device(cloud); await d.run('loadGymCloud()');
@@ -105,7 +105,7 @@ test('local migration does not overwrite an existing cloud planner', async () =>
   cloud.row = {revision:5,payload:{program:[{id:'remote',name:'Remote exercise',values:{}}],days:[]}};
   await d.run('saveGymDay()');
   assert.equal(cloud.row.revision, 5); assert.equal(d.run('gymProgram[0].name'), 'Squat');
-  assert.match(d.nodes.gymMessage.textContent, /Cloud entries already exist/);
+  assert.match(d.nodes.gymMessage.textContent, /Cloud refreshed/);
 });
 test('touch/pointer drag reorders on drop and cancellation preserves order', () => {
   for (const cancelled of [false, true]) {
@@ -159,4 +159,30 @@ test('graph uses selected metric and never treats missing weight as zero kg', ()
   d.run(`gymHistory[0].weight=20; drawGymChart();`);
   assert.equal(d.run('axis'), 'Weight (kg)');
   assert.equal(d.run('points.join()'), '20');
+});
+test('automatic refresh merges remote cells without losing a dirty local field', async () => {
+  const cloud = emptyCloud(); const seed = device(cloud); await seed.run('loadGymCloud()'); addWorkout(seed); await seed.run('saveGymDay()');
+  const phone = device(cloud); const pc = device(cloud);
+  await phone.run('loadGymCloud()'); await pc.run('loadGymCloud()');
+  phone.run(`gymProgram[0].name='Back squat'; markGymDirty();`);
+  pc.run(`gymProgram[0].values.day1.weight='30'; markGymDirty();`);
+  await pc.run('saveGymDay()'); await phone.run('loadGymCloud()');
+  assert.equal(phone.run('gymProgram[0].name'), 'Back squat');
+  assert.equal(phone.run('gymProgram[0].values.day1.weight'), '30');
+  assert.equal(phone.run('gymDirty'), true);
+  assert.equal(cloud.row.payload.program[0].name, 'Squat');
+  await phone.run('saveGymDay()');
+  assert.equal(cloud.row.payload.program[0].name, 'Back squat');
+  assert.equal(cloud.row.payload.program[0].values.day1.weight, '30');
+});
+test('automatic refresh preserves local deletions and includes remote added workouts', async () => {
+  const cloud = emptyCloud(); const seed = device(cloud); await seed.run('loadGymCloud()'); addWorkout(seed); await seed.run('saveGymDay()');
+  const phone = device(cloud); const pc = device(cloud); await phone.run('loadGymCloud()'); await pc.run('loadGymCloud()');
+  phone.run(`gymDays=[]; gymProgram[0].values={}; markGymDirty();`);
+  pc.run(`gymDays.push({id:'day2',date:'2026-09-29'}); gymProgram[0].values.day2={reps:'10',weight:'25'}; markGymDirty();`);
+  await pc.run('saveGymDay()'); await phone.run('loadGymCloud()');
+  assert.equal(phone.run('gymDays.map(d=>d.id).join()'), 'day2');
+  assert.equal(phone.run('gymProgram[0].values.day1'), undefined);
+  assert.equal(phone.run('gymProgram[0].values.day2.reps'), '10');
+  assert.equal(cloud.row.payload.days.length, 2);
 });
