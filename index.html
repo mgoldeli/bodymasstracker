@@ -706,7 +706,7 @@
     .date-control:focus-within { outline: 2px solid rgba(37,99,235,.4); outline-offset: 1px; }
     .gym-table { min-width: 0; }
     .gym-table th, .gym-table td { padding: 4px; vertical-align: top; }
-    .gym-table th:first-child { width: 124px; }
+    .gym-table th:first-child { width: 152px; }
     .gym-table th:not(:first-child) { width: 96px; }
     .gym-table th { vertical-align: middle; }
     .exercise-fields { margin: 0; display: grid; gap: 4px; }
@@ -1970,7 +1970,7 @@
           row.addEventListener("click", event => { if (event.target.tagName !== "BUTTON") select(); });
           tbody.append(row);
         });
-        document.getElementById("gymTable").style.width = `${124 + gymDays.length * 96}px`;
+        document.getElementById("gymTable").style.width = `${152 + gymDays.length * 96}px`;
         document.getElementById("gymEmptyHint").hidden = gymDays.length > 0;
       }
 
