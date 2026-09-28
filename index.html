@@ -1544,18 +1544,19 @@
 
       function drawDeficitChart() {
         const canvas = document.getElementById("deficitChart");
-        if (!entries.length) {
+        const plottedEntries = entries.filter(item => Number.isFinite(item.deficit) && item.deficit !== 0);
+        if (!plottedEntries.length) {
           const { ctx, width, height } = prepareCanvas(canvas);
           drawEmpty(ctx, width, height, "No deficit history yet");
           return;
         }
 
-        const values = entries.map(item => item.deficit);
+        const values = plottedEntries.map(item => item.deficit);
         const min = Math.min(0, ...values);
         const maxRaw = Math.max(500, ...values);
         const max = maxRaw + Math.max(150, (maxRaw - min) * 0.12);
 
-        const base = createChartBase(canvas, entries, {
+        const base = createChartBase(canvas, plottedEntries, {
           min,
           max,
           yLabel: "Deficit (kcal)",
@@ -1566,22 +1567,23 @@
         if (!base) return;
         drawTargetLine(base, 0, "0 kcal deficit", "#5f6368");
         drawTargetLine(base, 500, "500 kcal deficit", "#f59e0b");
-        drawLine(base, entries, item => item.deficit, "#7c3aed");
+        drawLine(base, plottedEntries, item => item.deficit, "#7c3aed");
       }
 
       function drawCalorieChart() {
         const canvas = document.getElementById("calorieChart");
-        if (!entries.length) {
+        const plottedEntries = entries.filter(item => [item.intake, item.burn].some(value => Number.isFinite(value) && value !== 0));
+        if (!plottedEntries.length) {
           const { ctx, width, height } = prepareCanvas(canvas);
           drawEmpty(ctx, width, height, "No calorie history yet");
           return;
         }
 
-        const values = entries.flatMap(item => [item.intake, item.burn]);
+        const values = plottedEntries.flatMap(item => [item.intake, item.burn]).filter(value => Number.isFinite(value) && value !== 0);
         const maxRaw = Math.max(...values, 1000);
         const max = maxRaw + Math.max(200, maxRaw * 0.08);
 
-        const base = createChartBase(canvas, entries, {
+        const base = createChartBase(canvas, plottedEntries, {
           min: 0,
           max,
           yLabel: "Calories (kcal)",
@@ -1590,12 +1592,12 @@
         });
 
         if (!base) return;
-        drawLine(base, entries, item => item.intake, "#2563eb");
-        drawLine(base, entries, item => item.burn, "#15803d");
+        drawLine(base, plottedEntries, item => item.intake === 0 ? null : item.intake, "#2563eb");
+        drawLine(base, plottedEntries, item => item.burn === 0 ? null : item.burn, "#15803d");
       }
 
       function drawWeightChart() {
-        const weightedEntries = entries.filter(item => Number.isFinite(item.weight));
+        const weightedEntries = entries.filter(item => Number.isFinite(item.weight) && item.weight !== 0);
         const canvas = document.getElementById("weightChart");
 
         if (!weightedEntries.length) {
