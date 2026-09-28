@@ -50,7 +50,8 @@
 
     .topbar {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
+      flex-direction: column;
       align-items: center;
       margin-bottom: 18px;
       gap: 12px;
@@ -77,13 +78,15 @@
     .section-toggle {
       display: grid;
       place-items: center;
-      width: 42px;
+      min-width: 90px;
+      padding: 0 16px;
       height: 42px;
       border: 0;
       border-radius: 10px;
       background: transparent;
       color: #64748b;
-      font-size: 1.25rem;
+      font-size: 1rem;
+      font-weight: 700;
       cursor: pointer;
       transition: all .15s ease;
     }
@@ -452,6 +455,12 @@
       letter-spacing: .04em;
     }
 
+    .app-icon { width: 76px; height: 76px; border-radius: 18px; }
+    .gym-cell input::placeholder { color: #94a3b8; opacity: 1; }
+    .gym-table [hidden] { display: none; }
+    .gym-table th:first-child { width: 220px; }
+    .exercise-actions { display: flex; gap: 8px; align-items: center; }
+
     .exercise-name {
       font-weight: 800;
       color: #0f172a;
@@ -564,7 +573,7 @@
     }
 
     @media (max-width: 760px) {
-      .topbar { flex-direction: row; align-items: center; }
+      .topbar { flex-direction: column; align-items: center; }
       .brand-group { gap: 10px; }
       .dashboard-grid { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
@@ -594,10 +603,11 @@
 <body>
   <main class="app">
     <header class="topbar">
+      <img class="app-icon" src="bodymasstracker-apple-touch-icon.png" alt="BodyMassTracker" />
       <div class="brand-group">
         <div class="section-switcher" aria-label="App sections">
-          <button class="section-toggle active" type="button" data-section="tracker" aria-label="Tracker view">📊</button>
-          <button class="section-toggle" type="button" data-section="gym" aria-label="Gym view">🏋️</button>
+          <button class="section-toggle active" type="button" data-section="tracker" aria-label="Tracker view">MassTracker</button>
+          <button class="section-toggle" type="button" data-section="gym" aria-label="Gym view">Gym</button>
         </div>
       </div>
     </header>
@@ -672,7 +682,7 @@
         <div class="gym-toolbar">
           <div class="gym-title-group">
             <h2>Gym program</h2>
-            <p>Use one row per exercise and enter values like 3x 8kg. Tap a row to show weight progression by date.</p>
+            <p>Add an exercise, then enter sets like 3x 8kg. Each next column appears when the previous column has an entry. Select a row to view its history.</p>
           </div>
 
           <div class="gym-controls">
@@ -680,7 +690,7 @@
               <label for="gymDate">Workout date</label>
               <input id="gymDate" type="date" />
             </div>
-            <button id="saveGymDayButton" class="button primary" type="button">Save day</button>
+            <button id="saveGymDayButton" class="button primary" type="button">Save Day</button>
           </div>
         </div>
 
@@ -689,18 +699,21 @@
             <thead>
               <tr>
                 <th>Exercise</th>
-                <th>Mon</th>
-                <th>Tue</th>
-                <th>Wed</th>
-                <th>Thu</th>
-                <th>Fri</th>
-                <th>Sat</th>
-                <th>Sun</th>
+                <th data-gym-day="Mon">Mon</th>
+                <th data-gym-day="Tue">Tue</th>
+                <th data-gym-day="Wed">Wed</th>
+                <th data-gym-day="Thu">Thu</th>
+                <th data-gym-day="Fri">Fri</th>
+                <th data-gym-day="Sat">Sat</th>
+                <th data-gym-day="Sun">Sun</th>
               </tr>
             </thead>
             <tbody id="gymTableBody"></tbody>
           </table>
         </div>
+        <div class="actions"><button id="addExerciseButton" class="button secondary" type="button">Add exercise</button></div>
+        <p class="helper">Changes are stored on this device when you click Save Day. Saving the same date replaces that date’s entries.</p>
+        <div id="gymMessage" class="message" role="status" aria-live="polite"></div>
       </article>
 
       <article class="chart-card gym-chart-card">
@@ -1437,72 +1450,61 @@
       let gymHistory = [];
       let selectedExercise = null;
 
-      function buildDefaultGymProgram() {
-        return [
-          { id: "bench-press", name: "Bench Press", values: { Mon: "", Tue: "", Wed: "", Thu: "", Fri: "", Sat: "", Sun: "" } },
-          { id: "squat", name: "Squat", values: { Mon: "", Tue: "", Wed: "", Thu: "", Fri: "", Sat: "", Sun: "" } },
-          { id: "deadlift", name: "Deadlift", values: { Mon: "", Tue: "", Wed: "", Thu: "", Fri: "", Sat: "", Sun: "" } },
-          { id: "overhead-press", name: "Overhead Press", values: { Mon: "", Tue: "", Wed: "", Thu: "", Fri: "", Sat: "", Sun: "" } },
-          { id: "rowing", name: "Rowing", values: { Mon: "", Tue: "", Wed: "", Thu: "", Fri: "", Sat: "", Sun: "" } }
-        ];
-      }
+      const GYM_STATE_KEY = "bodymasstracker.gym-state.v2";
 
-      function saveGymProgram() {
-        localStorage.setItem(GYM_PROGRAM_KEY, JSON.stringify(gymProgram));
+      function buildDefaultGymProgram() {
+        return [{ id: crypto.randomUUID(), name: "", values: {} }];
       }
 
       function loadGymProgram() {
         try {
-          const stored = JSON.parse(localStorage.getItem(GYM_PROGRAM_KEY) || "null");
-          if (stored && Array.isArray(stored) && stored.length) {
-            gymProgram = stored.map(exercise => ({
-              ...exercise,
-              values: {
-                Mon: exercise.values?.Mon || "",
-                Tue: exercise.values?.Tue || "",
-                Wed: exercise.values?.Wed || "",
-                Thu: exercise.values?.Thu || "",
-                Fri: exercise.values?.Fri || "",
-                Sat: exercise.values?.Sat || "",
-                Sun: exercise.values?.Sun || ""
-              }
-            }));
-            selectedExercise = selectedExercise || gymProgram[0]?.name || null;
-            return;
-          }
+          const state = JSON.parse(localStorage.getItem(GYM_STATE_KEY) || "null");
+          const legacy = JSON.parse(localStorage.getItem(GYM_PROGRAM_KEY) || "null");
+          gymProgram = state ? state.program : (Array.isArray(legacy) ? legacy : []);
+          // Old untouched starter rows are examples, not user entries.
+          if (!state && gymProgram.length === 5 && gymProgram.map(e => e.id).join() === "bench-press,squat,deadlift,overhead-press,rowing" && gymProgram.every(e => Object.values(e.values || {}).every(v => !v.trim()))) gymProgram = [];
+          gymHistory = state ? state.history : JSON.parse(localStorage.getItem(GYM_HISTORY_KEY) || "[]");
+          gymHistory = Array.isArray(gymHistory) ? gymHistory : [];
+          gymProgram = Array.isArray(gymProgram) ? gymProgram : [];
+          gymHistory.forEach(entry => {
+            entry.exerciseId ||= gymProgram.find(e => e.name === entry.exercise)?.id;
+          });
+          if (state?.date) document.getElementById("gymDate").value = state.date;
         } catch (error) {
-          console.warn("Could not load gym program:", error);
-        }
-
-        gymProgram = buildDefaultGymProgram();
-        selectedExercise = gymProgram[0]?.name || null;
-        saveGymProgram();
-      }
-
-      function saveGymHistory() {
-        localStorage.setItem(GYM_HISTORY_KEY, JSON.stringify(gymHistory));
-      }
-
-      function loadGymHistory() {
-        try {
-          const stored = JSON.parse(localStorage.getItem(GYM_HISTORY_KEY) || "[]");
-          gymHistory = Array.isArray(stored) ? stored : [];
-        } catch (error) {
-          console.warn("Could not load gym history:", error);
+          gymProgram = [];
           gymHistory = [];
+          setGymMessage("Could not load saved gym data.", true);
         }
+        if (!gymProgram.length) gymProgram = buildDefaultGymProgram();
+        selectedExercise = gymProgram[0]?.id || null;
+      }
+
+      function setGymMessage(message, error = false) {
+        const element = document.getElementById("gymMessage");
+        element.textContent = message;
+        element.style.color = error ? "var(--bad)" : "var(--muted)";
+      }
+
+      function updateGymColumns() {
+        let visible = true;
+        GYM_DAYS.forEach((day, index) => {
+          if (index) visible = visible && gymProgram.some(e => (e.values[GYM_DAYS[index - 1]] || "").trim());
+          // Keep existing later values reachable when an earlier cell is cleared.
+          const hasLaterData = gymProgram.some(e => GYM_DAYS.slice(index).some(d => (e.values[d] || "").trim()));
+          document.querySelectorAll(`[data-gym-day="${day}"]`).forEach(cell => cell.hidden = !visible && !hasLaterData);
+        });
       }
 
       function parseGymCell(value) {
         const cleaned = String(value || "").trim();
         if (!cleaned) return null;
 
-        const match = cleaned.match(/(\d+(?:\.\d+)?)\s*(?:x|X)\s*(\d+(?:\.\d+)?)\s*kg/i);
+        const match = cleaned.match(/^(\d+(?:\.\d+)?)\s*(?:x|X)\s*(\d+(?:\.\d+)?)\s*kg$/i);
         if (match) {
           return { weight: Number(match[2]), reps: Number(match[1]) };
         }
 
-        const weightOnly = cleaned.match(/(\d+(?:\.\d+)?)\s*kg/i);
+        const weightOnly = cleaned.match(/^(\d+(?:\.\d+)?)\s*kg$/i);
         if (weightOnly) {
           return { weight: Number(weightOnly[1]), reps: null };
         }
@@ -1512,105 +1514,96 @@
 
       function renderGymTable() {
         const tbody = document.getElementById("gymTableBody");
-        if (!tbody) return;
-
-        tbody.innerHTML = "";
-
+        tbody.replaceChildren();
         gymProgram.forEach(exercise => {
+          exercise.values ||= {};
           const row = document.createElement("tr");
-          row.className = `exercise-row${exercise.name === selectedExercise ? " selected" : ""}`;
-
+          row.className = `exercise-row${exercise.id === selectedExercise ? " selected" : ""}`;
           const nameCell = document.createElement("td");
-          nameCell.className = "exercise-name";
-          nameCell.textContent = exercise.name;
-          row.appendChild(nameCell);
-
+          nameCell.className = "gym-cell";
+          const actions = document.createElement("div");
+          actions.className = "exercise-actions";
+          const name = document.createElement("input");
+          name.value = exercise.name;
+          name.placeholder = "Add exercise, e.g. Squat";
+          name.setAttribute("aria-label", "Exercise name");
+          name.addEventListener("input", () => {
+            exercise.name = name.value;
+            setGymMessage("Unsaved changes — click Save Day to store them.");
+            drawGymChart();
+          });
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "delete-row";
+          remove.textContent = "Delete";
+          remove.addEventListener("click", () => {
+            gymProgram = gymProgram.filter(e => e.id !== exercise.id);
+            if (selectedExercise === exercise.id) selectedExercise = gymProgram[0]?.id || null;
+            renderGymTable();
+            drawGymChart();
+            setGymMessage("Exercise removed. Click Save Day to store the change.");
+          });
+          actions.append(name, remove);
+          nameCell.append(actions);
+          row.append(nameCell);
           GYM_DAYS.forEach(day => {
             const cell = document.createElement("td");
             cell.className = "gym-cell";
-
+            cell.dataset.gymDay = day;
             const input = document.createElement("input");
-            input.type = "text";
             input.value = exercise.values[day] || "";
-            input.placeholder = "3x 8kg";
-            input.dataset.exercise = exercise.name;
-            input.dataset.day = day;
-            input.setAttribute("aria-label", `${exercise.name} on ${day}`);
-            input.addEventListener("input", event => {
-              const target = event.target;
-              const exerciseName = target.dataset.exercise;
-              const exerciseEntry = gymProgram.find(item => item.name === exerciseName);
-              if (!exerciseEntry) return;
-
-              exerciseEntry.values[target.dataset.day] = target.value;
-              saveGymProgram();
+            input.placeholder = "e.g. 3x 8kg";
+            input.setAttribute("aria-label", `Workout entry for ${day}`);
+            input.addEventListener("input", () => {
+              exercise.values[day] = input.value;
+              updateGymColumns();
+              setGymMessage("Unsaved changes — click Save Day to store them.");
             });
-
-            cell.appendChild(input);
-            row.appendChild(cell);
+            cell.append(input);
+            row.append(cell);
           });
-
-          row.addEventListener("click", event => {
-            if (event.target.tagName === "INPUT") return;
-            selectedExercise = exercise.name;
-            renderGymTable();
+          const select = () => {
+            selectedExercise = exercise.id;
+            tbody.querySelectorAll("tr").forEach(r => r.classList.toggle("selected", r === row));
             drawGymChart();
-          });
-
-          tbody.appendChild(row);
+          };
+          row.addEventListener("focusin", select);
+          row.addEventListener("click", event => { if (event.target.tagName !== "BUTTON") select(); });
+          tbody.append(row);
         });
+        updateGymColumns();
       }
 
       function saveGymDay() {
         const workoutDate = document.getElementById("gymDate").value;
-        if (!workoutDate) {
-          setMessage("Please choose a workout date before saving the gym day.", true);
-          return;
-        }
-
+        if (!workoutDate) return setGymMessage("Please choose a workout date.", true);
         const newEntries = [];
-        gymProgram.forEach(exercise => {
-          GYM_DAYS.forEach(day => {
-            const value = exercise.values[day] || "";
-            if (!value.trim()) return;
+        for (const exercise of gymProgram) {
+          for (const day of GYM_DAYS) {
+            const value = (exercise.values[day] || "").trim();
+            if (!value) continue;
             const parsed = parseGymCell(value);
-            if (!parsed) return;
-            newEntries.push({
-              date: workoutDate,
-              exercise: exercise.name,
-              day,
-              raw: value.trim(),
-              weight: parsed.weight,
-              reps: parsed.reps || 1
-            });
-          });
-        });
-
-        if (!newEntries.length) {
-          setMessage("Add at least one valid set like 3x 8kg before saving.", true);
-          return;
-        }
-
-        const history = [...gymHistory];
-        newEntries.forEach(entry => {
-          const key = `${entry.date}|${entry.exercise}|${entry.day}`;
-          const existingIndex = history.findIndex(item => `${item.date}|${item.exercise}|${item.day}` === key);
-          if (existingIndex >= 0) {
-            history[existingIndex] = entry;
-          } else {
-            history.push(entry);
+            if (!exercise.name.trim() || !parsed) {
+              return setGymMessage(`Add an exercise name and a valid entry for ${day}, such as 3x 8kg. Nothing was saved.`, true);
+            }
+            newEntries.push({ date: workoutDate, exerciseId: exercise.id, exercise: exercise.name.trim(), day, raw: value, ...parsed });
           }
-        });
-
+        }
+        const program = gymProgram.filter(e => e.name.trim()).map(e => ({ ...e, name: e.name.trim() }));
+        const history = gymHistory.filter(e => e.date !== workoutDate).concat(newEntries);
+        try {
+          localStorage.setItem(GYM_STATE_KEY, JSON.stringify({ program, history, date: workoutDate }));
+        } catch (error) {
+          return setGymMessage("Could not save on this device. Your edits are still here; please try again.", true);
+        }
         gymHistory = history;
-        saveGymHistory();
         drawGymChart();
-        setMessage(`Saved ${newEntries.length} gym set(s) for ${formatDate(workoutDate)}.`);
+        setGymMessage(`Saved ${newEntries.length} entries for ${formatDate(workoutDate)} on this device.`);
       }
 
       function getExerciseHistory(exerciseName) {
         return [...gymHistory]
-          .filter(item => item.exercise === exerciseName)
+          .filter(item => item.exerciseId === exerciseName)
           .map(item => ({
             date: item.date,
             weight: Number(item.weight),
@@ -1628,7 +1621,8 @@
 
         if (!canvas || !title || !sub) return;
 
-        const exerciseName = selectedExercise || gymProgram[0]?.name || null;
+        const exercise = gymProgram.find(e => e.id === selectedExercise) || gymProgram[0];
+        const exerciseName = exercise?.name || null;
         if (!exerciseName) {
           const { ctx, width, height } = prepareCanvas(canvas);
           drawEmpty(ctx, width, height, "No exercises yet");
@@ -1637,7 +1631,7 @@
           return;
         }
 
-        const data = getExerciseHistory(exerciseName);
+        const data = getExerciseHistory(exercise.id);
         if (!data.length) {
           const { ctx, width, height } = prepareCanvas(canvas);
           drawEmpty(ctx, width, height, "No saved workout data yet");
@@ -1680,6 +1674,7 @@
         });
 
         localStorage.setItem("bodymasstracker.activeSection", sectionName);
+        requestAnimationFrame(drawGymChart);
       }
 
       function attachSectionNavigation() {
@@ -1710,6 +1705,13 @@
         });
       });
 
+      document.getElementById("addExerciseButton").addEventListener("click", () => {
+        gymProgram.push(...buildDefaultGymProgram());
+        renderGymTable();
+        document.querySelector("#gymTableBody tr:last-child input").focus();
+        setGymMessage("Unsaved changes — click Save Day to store them.");
+      });
+
       let resizeTimer;
       window.addEventListener("resize", () => {
         window.clearTimeout(resizeTimer);
@@ -1727,7 +1729,7 @@
         }
 
         loadGymProgram();
-        loadGymHistory();
+        document.getElementById("gymDate").value ||= new Date().toLocaleDateString("en-CA");
         renderGymTable();
         attachSectionNavigation();
         await loadEntries();
