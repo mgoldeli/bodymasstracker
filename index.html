@@ -1188,12 +1188,17 @@
       }
 
       function drawLine(base, data, valueAccessor, color) {
-        const values = data.map(valueAccessor);
-        const valid = values
-          .map((value, index) => Number.isFinite(value) ? index : -1)
-          .filter(index => index >= 0);
+        const points = data
+          .map((item, index) => {
+            const value = valueAccessor(item);
+            if (!Number.isFinite(value) || value === 0) {
+              return null;
+            }
+            return { index, value };
+          })
+          .filter(Boolean);
 
-        if (!valid.length) return;
+        if (!points.length) return;
 
         const { ctx, xFor, yFor } = base;
         ctx.strokeStyle = color;
@@ -1203,17 +1208,17 @@
         ctx.lineCap = "round";
 
         ctx.beginPath();
-        valid.forEach((index, pointIndex) => {
+        points.forEach(({ index, value }, pointIndex) => {
           const x = xFor(index);
-          const y = yFor(values[index]);
+          const y = yFor(value);
           if (pointIndex === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         });
         ctx.stroke();
 
-        valid.forEach(index => {
+        points.forEach(({ index, value }) => {
           ctx.beginPath();
-          ctx.arc(xFor(index), yFor(values[index]), 4, 0, Math.PI * 2);
+          ctx.arc(xFor(index), yFor(value), 4, 0, Math.PI * 2);
           ctx.fill();
         });
       }
