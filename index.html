@@ -1430,13 +1430,17 @@
           return null;
         }
 
-        const margin = { left: 58, right: 18, top: 18, bottom: 42 };
-        const plotWidth = Math.max(1, width - margin.left - margin.right);
-        const plotHeight = Math.max(1, height - margin.top - margin.bottom);
         const tickStep = options.tickStep;
         const min = Math.floor(options.min / tickStep) * tickStep;
         const max = Math.max(min + tickStep, Math.ceil(options.max / tickStep) * tickStep);
         const range = Math.max(0.0001, max - min);
+        const tickCount = Math.round((max - min) / tickStep);
+        const tickLabels = Array.from({ length: tickCount + 1 }, (_, i) => options.yFormatter(min + tickStep * i));
+        ctx.font = "12px system-ui, sans-serif";
+        const labelWidth = Math.max(...tickLabels.map(label => ctx.measureText(label).width));
+        const margin = { left: Math.ceil(labelWidth) + 12, right: 18, top: 32, bottom: 42 };
+        const plotWidth = Math.max(1, width - margin.left - margin.right);
+        const plotHeight = Math.max(1, height - margin.top - margin.bottom);
 
         const xFor = index =>
           data.length === 1
@@ -1451,7 +1455,6 @@
         ctx.lineWidth = 1;
         ctx.font = "12px system-ui, sans-serif";
 
-        const tickCount = Math.round((max - min) / tickStep);
         for (let i = 0; i <= tickCount; i++) {
           const value = min + tickStep * i;
           const y = yFor(value);
@@ -1461,7 +1464,7 @@
           ctx.stroke();
           ctx.textAlign = "right";
           ctx.textBaseline = "middle";
-          ctx.fillText(options.yFormatter(value), margin.left - 8, y);
+          ctx.fillText(tickLabels[i], margin.left - 8, y);
         }
 
         const maxLabels = width < 500 ? 4 : 7;
@@ -1475,13 +1478,10 @@
           }
         });
 
-        ctx.save();
-        ctx.translate(14, margin.top + plotHeight / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.textAlign = "center";
+        // A separate title row avoids crowding the tick values on narrow screens.
+        ctx.textAlign = "left";
         ctx.textBaseline = "top";
-        ctx.fillText(options.yLabel, 0, 0);
-        ctx.restore();
+        ctx.fillText(options.yLabel, margin.left, 2);
 
         return { ctx, width, margin, xFor, yFor };
       }
@@ -1535,6 +1535,7 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
+        if (!label) return;
         ctx.fillStyle = color;
         ctx.font = "bold 11px system-ui, sans-serif";
         ctx.textAlign = "left";
@@ -1565,8 +1566,8 @@
         });
 
         if (!base) return;
-        drawTargetLine(base, 0, "0 kcal deficit", "#5f6368");
-        drawTargetLine(base, 500, "500 kcal deficit", "#f59e0b");
+        drawTargetLine(base, 0, "", "#5f6368");
+        drawTargetLine(base, 500, "", "#f59e0b");
         drawLine(base, plottedEntries, item => item.deficit, "#7c3aed");
       }
 
