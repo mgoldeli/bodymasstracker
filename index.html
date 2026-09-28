@@ -1274,8 +1274,9 @@
         const margin = { left: 58, right: 18, top: 18, bottom: 42 };
         const plotWidth = Math.max(1, width - margin.left - margin.right);
         const plotHeight = Math.max(1, height - margin.top - margin.bottom);
-        const min = options.min;
-        const max = options.max;
+        const tickStep = options.tickStep;
+        const min = Math.floor(options.min / tickStep) * tickStep;
+        const max = Math.max(min + tickStep, Math.ceil(options.max / tickStep) * tickStep);
         const range = Math.max(0.0001, max - min);
 
         const xFor = index =>
@@ -1291,11 +1292,12 @@
         ctx.lineWidth = 1;
         ctx.font = "12px system-ui, sans-serif";
 
-        for (let i = 0; i <= 4; i++) {
-          const value = min + (range / 4) * i;
+        const tickCount = Math.round((max - min) / tickStep);
+        for (let i = 0; i <= tickCount; i++) {
+          const value = min + tickStep * i;
           const y = yFor(value);
           ctx.beginPath();
-          ctx.moveTo(margin.left, y);
+          ctx.moveTo(margin.left - 4, y);
           ctx.lineTo(width - margin.right, y);
           ctx.stroke();
           ctx.textAlign = "right";
@@ -1396,6 +1398,7 @@
           min,
           max,
           yLabel: "Deficit (kcal)",
+          tickStep: 500,
           yFormatter: value => Math.round(value).toLocaleString()
         });
 
@@ -1422,6 +1425,7 @@
           min: 0,
           max,
           yLabel: "Calories (kcal)",
+          tickStep: 500,
           yFormatter: value => Math.round(value).toLocaleString()
         });
 
@@ -1451,7 +1455,8 @@
           min,
           max,
           yLabel: "Body weight (kg)",
-          yFormatter: value => value.toFixed(1)
+          tickStep: 1,
+          yFormatter: value => value.toFixed(0)
         });
 
         if (!base) return;
@@ -1667,7 +1672,8 @@
           min: chartMin,
           max: chartMax,
           yLabel: "Weight (kg)",
-          yFormatter: value => `${Number(value).toFixed(1)} kg`
+          tickStep: 1,
+          yFormatter: value => Number(value).toFixed(0)
         });
 
         if (!base) return;
